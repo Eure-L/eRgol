@@ -9,6 +9,7 @@ use crossterm::{terminal, ExecutableCommand, event};
 use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crate::board::{Board, empty_board, random_board, test_board, update_board};
+use log::{info, warn};
 
 fn main() -> Result<(), Box<dyn Error>>{
     print!("Hello World");
@@ -20,16 +21,16 @@ fn main() -> Result<(), Box<dyn Error>>{
 
     // Rendering loop in separate thread
     let (render_tx, render_rx) = mpsc::channel();
-    let render_handle = thread::spawn(move || {
+    let render_handle = thread::spawn(move || unsafe {
         let mut stdout = io::stdout();
         let mut prev_board = empty_board();
-        render::render(&mut stdout, &prev_board, &prev_board, true);
+        render::render_braille(&mut stdout, &prev_board, &prev_board, true);
         loop{
              let curr_board = match render_rx.recv() {
                 Ok(rcv_board) => { rcv_board }
                 Err(_) => break,
              };
-            render::render(&mut stdout, &prev_board, &curr_board, false);
+            render::render_braille(&mut stdout, &prev_board, &curr_board, true);
             prev_board = curr_board;
 
         }

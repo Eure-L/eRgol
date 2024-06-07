@@ -62,8 +62,8 @@ pub fn update_board(prev_board: &mut Board, next_board: &mut Board){
                 prev_board[ix][iy+1] +
                 prev_board[ix+1][iy+1];
             next_board[ix][iy] = match total_neighbors {
-                2 => {1}
                 3 => {1}
+                4 => {1}
                 _ => {0}
             }
         }
