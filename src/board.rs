@@ -33,7 +33,7 @@ pub fn empty_board() -> Board {
 
 
 /// Returns a Board with 3 touching cells
-pub fn test_board() -> Board {
+pub fn blinker_board() -> Board {
     let mut cols = Vec::with_capacity(NUM_COLS);
     for _ in 0..NUM_COLS {
         let mut col = Vec::with_capacity(NUM_ROWS);
@@ -45,6 +45,26 @@ pub fn test_board() -> Board {
     cols[10][10] = 1;
     cols[10][11] = 1;
     cols[10][9] = 1;
+
+    cols
+}
+
+/// Returns a Board with 3 touching cells
+pub fn beacon_board() -> Board {
+    let mut cols = Vec::with_capacity(NUM_COLS);
+    for _ in 0..NUM_COLS {
+        let mut col = Vec::with_capacity(NUM_ROWS);
+        for _ in 0..NUM_ROWS{
+            col.push(0);
+        }
+        cols.push(col)
+    }
+    cols[10][10] = 1;
+    cols[11][10] = 1;
+    cols[10][11] = 1;
+    cols[13][13] = 1;
+    cols[12][13] = 1;
+    cols[13][12] = 1;
 
     cols
 }

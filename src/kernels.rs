@@ -7,20 +7,29 @@ pub fn update_board(prev_board: &mut Board, next_board: &mut Board){
     for ix in 1..NUM_COLS -1 {
         for iy in 1..NUM_ROWS -1{
             let total_neighbors =
-                prev_board[ix-1][iy-1] +
                     prev_board[ix][iy-1] +
-                    prev_board[ix+1][iy-1] +
-                    prev_board[ix-1][iy] +
-                    prev_board[ix][iy] +
-                    prev_board[ix+1][iy] +
-                    prev_board[ix-1][iy+1] +
                     prev_board[ix][iy+1] +
+                    prev_board[ix-1][iy] +
+                    prev_board[ix+1][iy] +
+                    prev_board[ix+1][iy-1] +
+                    prev_board[ix-1][iy+1] +
+                    prev_board[ix-1][iy-1] +
                     prev_board[ix+1][iy+1];
-            next_board[ix][iy] = match total_neighbors {
-                3 => {1}
-                4 => {1}
-                _ => {0}
+
+            if prev_board[ix][iy] == 1 {
+                next_board[ix][iy] = match total_neighbors {
+                    3 => {1}
+                    2 => {1}
+                    _ => {0}
+                }
             }
+            else {
+                next_board[ix][iy] = match total_neighbors {
+                    3 => {1}
+                    _ => {0}
+                }
+            }
+
         }
     }
 }

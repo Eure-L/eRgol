@@ -9,7 +9,7 @@ use std::time::Duration;
 use crossterm::{terminal, ExecutableCommand, event};
 use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
-use crate::board::{Board, edge_board, empty_board, random_board, test_board};
+use crate::board::{beacon_board, Board, edge_board, empty_board, random_board};
 use log::{info, warn};
 use crate::kernels::update_board;
 
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>>{
         }
     });
 
-    let mut curr_board = test_board();
+    let mut curr_board = beacon_board();
     let mut next_board = empty_board();
     let mut iter = 0;
     let mut speed: u32 = 1;
