@@ -3,6 +3,7 @@ use eRgol::{NUM_COLS, NUM_ROWS};
 
 pub type Board = Vec<Vec<u8>>;
 
+/// Returns an randomly composed board
 pub fn random_board() -> Board {
     let mut rng = rand::thread_rng();
     let mut cols = Vec::with_capacity(NUM_COLS);
@@ -17,6 +18,7 @@ pub fn random_board() -> Board {
     cols
 }
 
+/// Retrns an empty Board
 pub fn empty_board() -> Board {
     let mut cols = Vec::with_capacity(NUM_COLS);
     for _ in 0..NUM_COLS {
@@ -30,6 +32,7 @@ pub fn empty_board() -> Board {
 }
 
 
+/// Returns a Board with 3 touching cells
 pub fn test_board() -> Board {
     let mut cols = Vec::with_capacity(NUM_COLS);
     for _ in 0..NUM_COLS {
@@ -46,28 +49,37 @@ pub fn test_board() -> Board {
     cols
 }
 
-
-pub fn update_board(prev_board: &mut Board, next_board: &mut Board){
-    // Inner Board first as it is faster to compute
-    for ix in 1..NUM_COLS -1 {
-        for iy in 1..NUM_ROWS -1{
-            let total_neighbors =
-                prev_board[ix-1][iy-1] +
-                prev_board[ix][iy-1] +
-                prev_board[ix+1][iy-1] +
-                prev_board[ix-1][iy] +
-                prev_board[ix][iy] +
-                prev_board[ix+1][iy] +
-                prev_board[ix-1][iy+1] +
-                prev_board[ix][iy+1] +
-                prev_board[ix+1][iy+1];
-            next_board[ix][iy] = match total_neighbors {
-                3 => {1}
-                4 => {1}
-                _ => {0}
-            }
+/// Retruns a board with cells at the edge
+pub fn edge_board() -> Board {
+    let mut cols = Vec::with_capacity(NUM_COLS);
+    for _ in 0..NUM_COLS {
+        let mut col = Vec::with_capacity(NUM_ROWS);
+        for _ in 0..NUM_ROWS{
+            col.push(0);
         }
+        cols.push(col)
     }
-    //Todo Edges and corners
+    cols[0][1] = 1;
+    cols[0][2] = 1;
+    cols[0][3] = 1;
+    cols[0][4] = 1;
+    cols[0][5] = 1;
+    cols[0][6] = 1;
+    cols[0][7] = 1;
+    cols[0][8] = 1;
+    cols[0][9] = 1;
+    cols[0][10] = 1;
+    cols[0][0] = 1;
+    cols[2][0] = 1;
+    cols[3][0] = 1;
+    cols[4][0] = 1;
+    cols[5][0] = 1;
+    cols[6][0] = 1;
+    cols[7][0] = 1;
+    cols[8][0] = 1;
+    cols[9][0] = 1;
+    cols[10][0] = 1;
+    cols[1][0] = 1;
+    cols
 }
 
