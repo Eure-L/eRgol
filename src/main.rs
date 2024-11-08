@@ -9,7 +9,7 @@ use std::time::Duration;
 use crossterm::{terminal, ExecutableCommand, event};
 use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
-use crate::board::{beacon_board, Board, edge_board, empty_board, random_board};
+use crate::board::{Board, empty_board, random_board, blinker_board};
 use log::{info, warn};
 use crate::kernels::update_board;
 
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>>{
         }
     });
 
-    let mut curr_board = beacon_board();
+    let mut curr_board = blinker_board();
     let mut next_board = empty_board();
     let mut iter = 0;
     let mut speed: u32 = 1;
@@ -47,7 +47,6 @@ fn main() -> Result<(), Box<dyn Error>>{
     let mut paused = true;
     'gameloop: loop {
 
-        //print!("{}", iter);
         while event::poll(Duration::default())? {
             if let Event::Key(key_event) = event::read()? {
                 match key_event.code {
@@ -95,7 +94,7 @@ fn main() -> Result<(), Box<dyn Error>>{
 
         // Asks to the rendering thread to draw the frame :)
         let _ = render_tx.send(curr_board.clone());
-        thread::sleep(Duration::from_millis(200 ));
+        thread::sleep(Duration::from_millis(5 ));
         iter += 1;
     }
 

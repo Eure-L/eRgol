@@ -29,7 +29,6 @@ pub fn update_board(prev_board: &mut Board, next_board: &mut Board){
                     _ => {0}
                 }
             }
-
         }
     }
 }
