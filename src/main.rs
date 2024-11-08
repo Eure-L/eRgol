@@ -8,9 +8,11 @@ use std::sync::mpsc;
 use std::time::Duration;
 use crossterm;
 use crossterm::event::{Event, KeyCode};
+use crossterm::{
+    cursor
+};
 use crossterm::ExecutableCommand;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
-use log::{info, warn};
 use crate::kernels::update_board;
 
 fn main() -> Result<(), Box<dyn Error>>{
@@ -19,6 +21,7 @@ fn main() -> Result<(), Box<dyn Error>>{
     let mut stdout = std::io::stdout();
     crossterm::terminal::enable_raw_mode()?;
     stdout.execute(EnterAlternateScreen)?;
+    std::io::stdout().execute(cursor::Hide)?;
 
     // Rendering loop in separate thread
     let (render_tx, render_rx) = mpsc::channel();
@@ -104,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>>{
     // Switch back to main terminal
     stdout.execute(LeaveAlternateScreen)?;
     crossterm::terminal::disable_raw_mode()?;
-    crossterm::terminal::disable_raw_mode();
+    std::io::stdout().execute(cursor::Show)?;
     Ok(())
 }
 
