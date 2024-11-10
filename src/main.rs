@@ -13,7 +13,25 @@ use crossterm::event::{Event, KeyCode};
 use crossterm::{cursor};
 use crossterm::ExecutableCommand;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use crate::board::Board;
 use crate::kernels::update_board;
+
+struct GameParams {
+    iter: u32,
+    speed: u32,
+}
+
+impl GameParams {
+    pub(crate) fn clone(&self) -> GameParams {
+        GameParams{iter: self.iter, speed: self.speed}
+    }
+}
+
+struct Game {
+    game_params: GameParams,
+    board: Board,
+}
+
 
 fn main() -> Result<(), Box<dyn Error>>{
 
@@ -28,28 +46,29 @@ fn main() -> Result<(), Box<dyn Error>>{
     let render_handle = std::thread::spawn(move || unsafe {
         let mut stdout = std::io::stdout();
         let mut prev_board = board::empty_board();
-        render::render_braille(&mut stdout, &prev_board, true);
+        render::render_braille(&mut stdout, &prev_board, GameParams{iter: 0, speed: 1},true);
         loop{
-             let curr_board = match render_rx.recv() {
-                Ok(rcv_board) => { rcv_board }
+             let curr_game : Game = match render_rx.recv() {
+                Ok(rcv_game) => { rcv_game }
                 Err(_) => break,
              };
-            render::render_braille(&mut stdout, &prev_board, false);
+            let curr_board = curr_game.board;
+            let game_params = curr_game.game_params;
+            // let refresh_stdout = if game_params.iter % 10 == 0 { true } else { false };
+            render::render_braille(&mut stdout, &prev_board, game_params, false);
             prev_board = curr_board;
-
         }
     });
 
+    let mut game_params = GameParams{ iter: 0, speed: 1 };
     let mut curr_board = board::blinker_board();
     let mut next_board = board::empty_board();
-    let mut iter = 0;
-    let mut speed: u32 = 1;
 
     // Game of life loop
     let mut paused = true;
     'gameloop: loop {
 
-        while crossterm::event::poll(Duration::default())? {
+        while crossterm::event::poll(Duration::from_millis(7))? {
             if let Event::Key(key_event) = crossterm::event::read()? {
                 match key_event.code {
                     KeyCode::Backspace => {paused = !paused}
@@ -64,15 +83,15 @@ fn main() -> Result<(), Box<dyn Error>>{
 
                     // Speed up
                     KeyCode::Char('+') => {
-                        if speed < u32::MAX / 2 {
-                            speed = speed * 2
+                        if game_params.speed < 16 {
+                            game_params.speed = game_params.speed * 2
                         }
                     }
 
                     // Slow down
                     KeyCode::Char('-') => {
-                        if speed > 1 {
-                            speed = speed / 2
+                        if game_params.speed > 1 {
+                            game_params.speed = game_params.speed / 2
                         }
                     }
 
@@ -90,15 +109,19 @@ fn main() -> Result<(), Box<dyn Error>>{
         }
 
         if !paused {
-            for step in 0..speed {
+            for step in 0..game_params.speed {
                 crate::step(&mut curr_board, &mut next_board)
             }
         }
 
         // Asks to the rendering thread to draw the frame :)
-        let _ = render_tx.send(curr_board.clone());
+        let _ = render_tx.send(Game{game_params: game_params.clone(), board: curr_board.clone() });
         std::thread::sleep(Duration::from_millis(5 ));
-        iter += 1;
+
+        if !paused {
+            game_params.iter += game_params.speed;
+        }
+
     }
 
     // Join threads

@@ -4,18 +4,18 @@ use crossterm::QueueableCommand;
 use crate::board::Board;
 use crossterm::style::{Color, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
-use crate::get;
+use crate::{get, GameParams};
 use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, };
 
 
 /// Renders the grid by computing corresponding braille character for each patch of alive/dead cells
 /// Uses Char arithmetic to render the correct Braille Unicode character, making it unsafe.
-pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, forced: bool){
+pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, game_params: GameParams, forced: bool) {
 
     if forced
     {
         stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
-        stdout.queue(SetBackgroundColor(Color::DarkGrey)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Reset)).unwrap();
         stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     }
@@ -25,8 +25,6 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, for
     for bloc_x in 0..get!(NUM_BRAILLE_BLOCS_X) - 1 {
         for bloc_y in 0..get!(NUM_BRAILLE_BLOCS_Y) - 1{
             let mut code = BRAILE_ALPHABET_START; // Code of corresponding unicode char for this brail code
-
-
             for ix in 0..BRAILLE_SIZE_X {
                 let x = bloc_x * BRAILLE_SIZE_X + ix;
 
@@ -46,19 +44,19 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, for
                     _ => {0}
                 };
                 code = code + weight;
-
             }
             stdout.queue(MoveTo(bloc_x as u16, bloc_y as u16)).unwrap();
             // print!("{}", code)
             print!("{}", char::from_u32_unchecked(code));
         }
-        // Todo implement hard-code render of edge Y Blocks
     }
-    // Todo implement hard-code render of edge X Blocks
 
+    stdout.queue(MoveTo(0, get!(NUM_BRAILLE_BLOCS_Y) as u16)).unwrap();
+    print!("Iteration:{}   \n", game_params.iter);
+    stdout.queue(MoveTo(0, get!(NUM_BRAILLE_BLOCS_Y) as u16 +1)).unwrap();
+    print!("Speed:{}  ", game_params.speed);
     stdout.flush().unwrap()
 }
-
 
 
 pub fn render(stdout: &mut Stdout, prev_board: &Board, new_board: &Board, forced: bool){
