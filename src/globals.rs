@@ -1,3 +1,4 @@
+use std::cmp;
 use lazy_static::lazy_static;
 use terminal_size::{Width, Height, terminal_size};
 use std::sync::RwLock;
@@ -6,13 +7,16 @@ use crate::get;
 pub const BRAILLE_SIZE_X: u32 = 2;
 pub const BRAILLE_SIZE_Y: u32 = 4;
 
+pub const MAX_WIDTH: u32 = 100;  // Set your desired max width
+pub const MAX_HEIGHT: u32 = 40; // Set your desired max height
+
 
 lazy_static! {
     pub static ref NUM_BRAILLE_BLOCS_Y: RwLock<u32> = RwLock::new(
-        terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32 - 5
+        cmp::min(terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32 - 5, MAX_HEIGHT)
     );
     pub static ref NUM_BRAILLE_BLOCS_X: RwLock<u32> = RwLock::new(
-        terminal_size().map(|(Width(w), _)| w).unwrap_or(42) as u32
+        cmp::min(terminal_size().map(|(Width(w), _)| w).unwrap_or(42) as u32, MAX_WIDTH)
     );
     pub static ref NUM_COLS: RwLock<u32> = RwLock::new(
         get!(NUM_BRAILLE_BLOCS_X) * BRAILLE_SIZE_X
