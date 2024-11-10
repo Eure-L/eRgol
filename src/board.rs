@@ -1,17 +1,17 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use rand::Rng;
-use eRgol::{NUM_COLS, NUM_ROWS};
+use crate::globals::{NUM_COLS, NUM_ROWS};
 
 pub type Board = Vec<Vec<u8>>;
 
 /// Returns an randomly composed board
 pub fn random_board() -> Board {
     let mut rng = rand::thread_rng();
-    let mut cols = Vec::with_capacity(NUM_COLS);
-    for _ in 0..NUM_COLS {
-        let mut col = Vec::with_capacity(NUM_ROWS);
-        for _ in 0..NUM_ROWS{
+    let mut cols = Vec::with_capacity(*NUM_COLS);
+    for _ in 0..*NUM_COLS {
+        let mut col = Vec::with_capacity(*NUM_ROWS);
+        for _ in 0..*NUM_ROWS{
 
             col.push(rng.gen_range(0..1));
         }
@@ -20,12 +20,12 @@ pub fn random_board() -> Board {
     cols
 }
 
-/// Retrns an empty Board
+/// Returns an empty Board
 pub fn empty_board() -> Board {
-    let mut cols = Vec::with_capacity(NUM_COLS);
-    for _ in 0..NUM_COLS {
-        let mut col = Vec::with_capacity(NUM_ROWS);
-        for _ in 0..NUM_ROWS{
+    let mut cols = Vec::with_capacity(*NUM_COLS);
+    for _ in 0..*NUM_COLS {
+        let mut col = Vec::with_capacity(*NUM_ROWS);
+        for _ in 0..*NUM_ROWS{
             col.push(0);
         }
         cols.push(col)
@@ -36,10 +36,10 @@ pub fn empty_board() -> Board {
 
 /// Returns a Board with 3 touching cells
 pub fn blinker_board() -> Board {
-    let mut cols = Vec::with_capacity(NUM_COLS);
-    for _ in 0..NUM_COLS {
-        let mut col = Vec::with_capacity(NUM_ROWS);
-        for _ in 0..NUM_ROWS{
+    let mut cols = Vec::with_capacity(*NUM_COLS);
+    for _ in 0..*NUM_COLS {
+        let mut col = Vec::with_capacity(*NUM_ROWS);
+        for _ in 0..*NUM_ROWS{
             col.push(0);
         }
         cols.push(col)
@@ -49,8 +49,6 @@ pub fn blinker_board() -> Board {
     cols[10][9] = 1;
     cols
 }
-
-/// Returns a Board with 3 touching cells
 
 
 pub fn load_board(board_name: &str, dst_board: &mut Board){

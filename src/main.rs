@@ -1,6 +1,7 @@
 mod render;
 mod board;
 mod kernels;
+mod globals;
 
 use std::error::Error;
 use std;
@@ -8,9 +9,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 use crossterm;
 use crossterm::event::{Event, KeyCode};
-use crossterm::{
-    cursor
-};
+use crossterm::{cursor};
 use crossterm::ExecutableCommand;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crate::kernels::update_board;
@@ -28,13 +27,13 @@ fn main() -> Result<(), Box<dyn Error>>{
     let render_handle = std::thread::spawn(move || unsafe {
         let mut stdout = std::io::stdout();
         let mut prev_board = board::empty_board();
-        render::render_braille(&mut stdout, &prev_board, &prev_board, true);
+        render::render_braille(&mut stdout, &prev_board, true);
         loop{
              let curr_board = match render_rx.recv() {
                 Ok(rcv_board) => { rcv_board }
                 Err(_) => break,
              };
-            render::render_braille(&mut stdout, &prev_board, &curr_board, false);
+            render::render_braille(&mut stdout, &prev_board, false);
             prev_board = curr_board;
 
         }
@@ -81,7 +80,8 @@ fn main() -> Result<(), Box<dyn Error>>{
                         paused = !paused
                     }
                     KeyCode::Char(' ') => {
-                        paused = !paused
+                        paused = !paused;
+                        break;
                     }
                     _ => {}
                 }

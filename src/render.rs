@@ -2,26 +2,27 @@ use std::io::{Stdout, Write};
 use crossterm::cursor::MoveTo;
 use crossterm::QueueableCommand;
 use crate::board::Board;
-use crossterm::style::{Color, SetBackgroundColor};
+use crossterm::style::{Color, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
-use eRgol::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
+use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
 
 
 /// Renders the grid by computing corresponding braille character for each patch of alive/dead cells
 /// Uses Char arithmetic to render the correct Braille Unicode character, making it unsafe.
-pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, new_board: &Board, forced: bool){
+pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, forced: bool){
 
     if forced
     {
-        stdout.queue(SetBackgroundColor(Color::DarkBlue)).unwrap();
-        stdout.queue(Clear(ClearType::All)).unwrap();
+        stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
         stdout.queue(SetBackgroundColor(Color::DarkGrey)).unwrap();
+        stdout.queue(Clear(ClearType::All)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     }
     
-    const base: u32 = 2;
+    const BASE: u32 = 2;
     // Braill blocks iteration
-    for bloc_x in 0..NUM_BRAILLE_BLOCS_X - 1 {
-        for bloc_y in 0..NUM_BRAILLE_BLOCS_Y - 1{
+    for bloc_x in 0..*NUM_BRAILLE_BLOCS_X - 1 {
+        for bloc_y in 0..*NUM_BRAILLE_BLOCS_Y - 1{
             let mut code = BRAILE_ALPHABET_START; // Code of corresponding unicode char for this brail code
 
 
@@ -32,7 +33,7 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, new
                 for iy in 0..BRAILLE_SIZE_Y - 1 {
                     let y = bloc_y * BRAILLE_SIZE_Y + iy;
                     let weight = match prev_board[x][y] {
-                        1 => {base.pow((iy + ix * (BRAILLE_SIZE_Y-1)) as u32)}
+                        1 => {BASE.pow((iy + ix * (BRAILLE_SIZE_Y-1)) as u32)}
                         _ => {0}
                     };
                     code = code + weight;
