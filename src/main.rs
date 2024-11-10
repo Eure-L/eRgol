@@ -2,6 +2,7 @@ mod render;
 mod board;
 mod kernels;
 mod globals;
+mod macros;
 
 use std::error::Error;
 use std;

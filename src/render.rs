@@ -4,7 +4,8 @@ use crossterm::QueueableCommand;
 use crate::board::Board;
 use crossterm::style::{Color, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
-use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
+use crate::get;
+use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, };
 
 
 /// Renders the grid by computing corresponding braille character for each patch of alive/dead cells
@@ -21,8 +22,8 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, for
     
     const BASE: u32 = 2;
     // Braill blocks iteration
-    for bloc_x in 0..*NUM_BRAILLE_BLOCS_X - 1 {
-        for bloc_y in 0..*NUM_BRAILLE_BLOCS_Y - 1{
+    for bloc_x in 0..get!(NUM_BRAILLE_BLOCS_X) - 1 {
+        for bloc_y in 0..get!(NUM_BRAILLE_BLOCS_Y) - 1{
             let mut code = BRAILE_ALPHABET_START; // Code of corresponding unicode char for this brail code
 
 
@@ -32,7 +33,7 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, for
                 // First 6 Braille cells pattern computing
                 for iy in 0..BRAILLE_SIZE_Y - 1 {
                     let y = bloc_y * BRAILLE_SIZE_Y + iy;
-                    let weight = match prev_board[x][y] {
+                    let weight = match prev_board[x as usize][y as usize] {
                         1 => {BASE.pow((iy + ix * (BRAILLE_SIZE_Y-1)) as u32)}
                         _ => {0}
                     };
@@ -40,7 +41,7 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, for
                 }
 
                 // Two last Braille cells
-                let weight = match prev_board[x][bloc_y * (BRAILLE_SIZE_Y) + BRAILLE_SIZE_Y -1] {
+                let weight = match prev_board[x as usize][(bloc_y * (BRAILLE_SIZE_Y) + BRAILLE_SIZE_Y -1) as usize] {
                     1 => { (ix as u32 +1) * 0x40 }
                     _ => {0}
                 };
