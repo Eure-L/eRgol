@@ -1,115 +1,110 @@
 mod render;
 mod board;
 mod kernels;
+mod globals;
+mod macros;
+mod game_files;
+mod game_loops;
 
-use std::error::Error;
-use std::{io, thread};
-use std::sync::mpsc;
-use std::time::Duration;
-use crossterm::{terminal, ExecutableCommand, event};
-use crossterm::event::{Event, KeyCode};
+use crate::board::Board;
+use crate::game_files::GameFile;
+use crate::game_loops::play;
+use crate::kernels::Kernels;
+use crate::render::rendering_tread;
+use crossterm;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
-use crate::board::{Board, empty_board, random_board, blinker_board};
-use log::{info, warn};
-use crate::kernels::update_board;
+use crossterm::ExecutableCommand;
+use crossterm::cursor;
+use std;
+use std::error::Error;
+use std::sync::mpsc;
 
-fn main() -> Result<(), Box<dyn Error>>{
+enum GameModes {
+    Playing,
+    MainMenu,
+}
+
+impl Clone for GameModes {
+    fn clone(&self) -> GameModes {
+        match self {
+            GameModes::Playing => GameModes::Playing,
+            GameModes::MainMenu => GameModes::MainMenu,
+        }
+    }
+}
+
+struct GameParams {
+    iter: u32,
+    speed: u32,
+    paused: bool,
+    mode: GameModes,
+    kernel: Kernels,
+}
+
+impl GameParams {
+    pub(crate) fn clone(&self) -> GameParams {
+        GameParams {
+            iter: self.iter,
+            speed: self.speed,
+            paused: self.paused,
+            mode: self.mode.clone(),
+            kernel: self.kernel.clone(),
+        }
+    }
+}
+
+struct Game {
+    game_params: GameParams,
+    board: Board,
+}
+
+
+fn main() -> Result<(), Box<dyn Error>> {
 
     // Switch to alternate terminal
-    let mut stdout = io::stdout();
-    terminal::enable_raw_mode()?;
+    let mut stdout = std::io::stdout();
+    crossterm::terminal::enable_raw_mode()?;
     stdout.execute(EnterAlternateScreen)?;
+    std::io::stdout().execute(cursor::Hide)?;
 
     // Rendering loop in separate thread
     let (render_tx, render_rx) = mpsc::channel();
-    let render_handle = thread::spawn(move || unsafe {
-        let mut stdout = io::stdout();
-        let mut prev_board = empty_board();
-        // render::render(&mut stdout, &prev_board, &prev_board, true);
-        render::render_braille(&mut stdout, &prev_board, &prev_board, true);
-        loop{
-             let curr_board = match render_rx.recv() {
-                Ok(rcv_board) => { rcv_board }
-                Err(_) => break,
-             };
-            // render::render(&mut stdout, &prev_board, &curr_board, false);
-            render::render_braille(&mut stdout, &prev_board, &curr_board, false);
-            prev_board = curr_board;
-
-        }
+    let render_handle = std::thread::spawn(move || unsafe {
+        rendering_tread(&render_rx);
     });
 
-    let mut curr_board = blinker_board();
-    let mut next_board = empty_board();
-    let mut iter = 0;
-    let mut speed: u32 = 1;
+    // Start game initialization
+    let mut curr_board = board::empty_board();
+    let mut next_board = board::empty_board();
+
+    let startgame = GameFile::GliderGun;
+    let start_mode = GameModes::Playing;
+    let default_kernel = Kernels::CpuSequential;
+    let mut game_params = GameParams { iter: 0, speed: 1, paused: true, mode: start_mode, kernel: default_kernel };
+
+    board::load_board_from_gamefile(startgame, &mut curr_board);
+
     // Game of life loop
-    let mut paused = true;
     'gameloop: loop {
+        let status = match game_params.mode {
+            GameModes::Playing => { play(&mut game_params, &mut curr_board, &mut next_board, render_tx.clone()) }
+            GameModes::MainMenu => { Ok(()) }
+        };
 
-        while event::poll(Duration::default())? {
-            if let Event::Key(key_event) = event::read()? {
-                match key_event.code {
-                    KeyCode::Backspace => {paused = !paused}
-                    KeyCode::Esc  | KeyCode::Char('q') => {
-                        break 'gameloop;
-                    }
-
-                    // unit step
-                    KeyCode::Char('s') => {
-                        step(&mut curr_board, &mut next_board)
-                    }
-
-                    // Speed up
-                    KeyCode::Char('+') => {
-                        if speed < u32::MAX / 2 {
-                            speed = speed * 2
-                        }
-                    }
-
-                    // Slow down
-                    KeyCode::Char('-') => {
-                        if speed > 1 {
-                            speed = speed / 2
-                        }
-                    }
-
-                    // Pause/unpause
-                    KeyCode::Char('p') => {
-                        paused = !paused
-                    }
-                    KeyCode::Char(' ') => {
-                        paused = !paused
-                    }
-                    _ => {}
-                }
-            }
+        match status {
+            Ok(_) => {}
+            Err(_) => { break 'gameloop; }
         }
-
-        if !paused {
-            for step in 0..speed {
-                crate::step(&mut curr_board, &mut next_board)
-            }
-        }
-
-        // Asks to the rendering thread to draw the frame :)
-        let _ = render_tx.send(curr_board.clone());
-        thread::sleep(Duration::from_millis(5 ));
-        iter += 1;
     }
 
     // Join threads
     drop(render_tx);
     render_handle.join().unwrap();
 
-    // Switch back to main terminal
+    // Restore main terminal
     stdout.execute(LeaveAlternateScreen)?;
-    terminal::disable_raw_mode()?;
-    terminal::disable_raw_mode();
+    crossterm::terminal::disable_raw_mode()?;
+    std::io::stdout().execute(cursor::Show)?;
     Ok(())
 }
 
-fn step(prev_board: &mut Board, next_board: &mut Board){
-    update_board(prev_board, next_board);
-    std::mem::swap(prev_board, next_board);
-}
