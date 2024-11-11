@@ -17,15 +17,34 @@ use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crate::board::Board;
 use crate::game_files::GameFile;
 use crate::kernels::update_board;
+use crate::render::rendering_tread;
+
+enum GameModes {
+    Playing,
+    MainMenu,
+}
+
+impl Clone for GameModes {
+    fn clone(&self) -> GameModes {
+        match self {
+            GameModes::Playing => GameModes::Playing,
+            GameModes::MainMenu => GameModes::MainMenu,
+        }
+    }
+}
 
 struct GameParams {
     iter: u32,
     speed: u32,
+    mode: GameModes,
 }
 
 impl GameParams {
     pub(crate) fn clone(&self) -> GameParams {
-        GameParams{iter: self.iter, speed: self.speed}
+        GameParams{
+            iter: self.iter,
+            speed: self.speed,
+            mode: self.mode.clone() }
     }
 }
 
@@ -46,26 +65,13 @@ fn main() -> Result<(), Box<dyn Error>>{
     // Rendering loop in separate thread
     let (render_tx, render_rx) = mpsc::channel();
     let render_handle = std::thread::spawn(move || unsafe {
-        let mut stdout = std::io::stdout();
-        let mut prev_board = board::empty_board();
-        render::render_braille(&mut stdout, &prev_board, GameParams{iter: 0, speed: 1},true);
-        loop{
-             let curr_game : Game = match render_rx.recv() {
-                Ok(rcv_game) => { rcv_game }
-                Err(_) => break,
-             };
-            let curr_board = curr_game.board;
-            let game_params = curr_game.game_params;
-            // let refresh_stdout = if game_params.iter % 10 == 0 { true } else { false };
-            render::render_braille(&mut stdout, &prev_board, game_params, false);
-            prev_board = curr_board;
-        }
+        rendering_tread(&render_rx);
     });
 
-    // STart game initialization
+    // Start game initialization
     let mut curr_board = board::empty_board();
     let mut next_board = board::empty_board();
-    let mut game_params = GameParams{ iter: 0, speed: 1 };
+    let mut game_params = GameParams{ iter: 0, speed: 1 , mode: GameModes::Playing };
     let startgame = GameFile::Spaceship;
     board::load_board_from_gamefile(startgame, &mut curr_board);
 

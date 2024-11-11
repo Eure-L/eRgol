@@ -1,10 +1,13 @@
+use std::error::Error;
 use std::io::{Stdout, Write};
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
 use crossterm::cursor::MoveTo;
-use crossterm::QueueableCommand;
+use crossterm::{cursor, ExecutableCommand, QueueableCommand};
 use crate::board::Board;
 use crossterm::style::{Color, SetBackgroundColor, SetForegroundColor};
-use crossterm::terminal::{Clear, ClearType};
-use crate::{get, GameParams};
+use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen};
+use crate::{board, get, render, Game, GameModes, GameParams};
 use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, };
 
 
@@ -59,24 +62,19 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, gam
 }
 
 
-pub fn render(stdout: &mut Stdout, prev_board: &Board, new_board: &Board, forced: bool){
-
-    if forced
-    {
-        stdout.queue(SetBackgroundColor(Color::DarkBlue)).unwrap();
-        stdout.queue(Clear(ClearType::All)).unwrap();
-        stdout.queue(SetBackgroundColor(Color::DarkGrey)).unwrap();
+pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>){
+    let mut stdout = std::io::stdout();
+    let mut prev_board = board::empty_board();
+    render_braille(&mut stdout, &prev_board, GameParams{iter: 0, speed: 1, mode: GameModes::Playing }, true);
+    loop{
+        let curr_game : Game = match render_rx.recv() {
+            Ok(rcv_game) => { rcv_game }
+            Err(_) => break,
+        };
+        let curr_board = curr_game.board;
+        let game_params = curr_game.game_params;
+        // let refresh_stdout = if game_params.iter % 10 == 0 { true } else { false };
+        render::render_braille(&mut stdout, &prev_board, game_params, false);
+        prev_board = curr_board;
     }
-
-    for (x, col) in new_board.iter().enumerate(){
-        for (y, cell) in col.iter().enumerate(){
-            stdout.queue(MoveTo(x as u16, y as u16)).unwrap();
-            match *cell {
-                1 => {print!("X")}
-                0 => {print!(" ")}
-                _ => {print!(" ")}
-            }
-        }
-    }
-    stdout.flush().unwrap()
 }
