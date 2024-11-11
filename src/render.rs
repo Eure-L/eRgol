@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::globals::{BRAILE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
+use crate::globals::{BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
 use crate::kernels::Kernels::CpuSequential;
 use crate::{board, get, Game, GameModes, GameParams};
 use crossterm::cursor::MoveTo;
@@ -24,7 +24,7 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, prev_board: &Board, gam
     // Braill blocks iteration
     for bloc_x in 0..get!(NUM_BRAILLE_BLOCS_X) - 1 {
         for bloc_y in 0..get!(NUM_BRAILLE_BLOCS_Y) - 1 {
-            let mut code = BRAILE_ALPHABET_START; // Code of corresponding unicode char for this brail code
+            let mut code = BRAILLE_ALPHABET_START; // Code of corresponding unicode char for this brail code
             for ix in 0..BRAILLE_SIZE_X {
                 let x = bloc_x * BRAILLE_SIZE_X + ix;
 

@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut curr_board = board::empty_board();
     let mut next_board = board::empty_board();
 
-    let startgame = GameFile::GliderGun;
+    let startgame = GameFile::Braille;
     let start_mode = GameModes::Playing;
     let default_kernel = Kernels::CpuSequential;
     let mut game_params = GameParams { iter: 0, speed: 1, paused: true, mode: start_mode, kernel: default_kernel };

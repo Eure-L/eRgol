@@ -26,7 +26,7 @@ lazy_static! {
     );
 }
 
-pub const BRAILE_ALPHABET_START: u32 = 0x2800;
+pub const BRAILLE_ALPHABET_START: u32 = 0x2800;
 
 // 280x 	⠀ 	⠁ 	⠂ 	⠃ 	⠄ 	⠅ 	⠆ 	⠇ 	⠈ 	⠉ 	⠊ 	⠋ 	⠌ 	⠍ 	⠎ 	⠏
 // U+281x 	⠐ 	⠑ 	⠒ 	⠓ 	⠔ 	⠕ 	⠖ 	⠗ 	⠘ 	⠙ 	⠚ 	⠛ 	⠜ 	⠝ 	⠞ 	⠟
