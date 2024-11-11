@@ -7,8 +7,8 @@ use crate::get;
 pub const BRAILLE_SIZE_X: u32 = 2;
 pub const BRAILLE_SIZE_Y: u32 = 4;
 
-pub const MAX_WIDTH: u32 = 100;  // Set your desired max width
-pub const MAX_HEIGHT: u32 = 40; // Set your desired max height
+pub const MAX_WIDTH: u32 = 375;  // Set your desired max width
+pub const MAX_HEIGHT: u32 = 95; // Set your desired max height
 
 
 lazy_static! {

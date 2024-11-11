@@ -3,6 +3,7 @@ mod board;
 mod kernels;
 mod globals;
 mod macros;
+mod game_files;
 
 use std::error::Error;
 use std;
@@ -14,6 +15,7 @@ use crossterm::{cursor};
 use crossterm::ExecutableCommand;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crate::board::Board;
+use crate::game_files::GameFile;
 use crate::kernels::update_board;
 
 struct GameParams {
@@ -60,14 +62,16 @@ fn main() -> Result<(), Box<dyn Error>>{
         }
     });
 
-    let mut game_params = GameParams{ iter: 0, speed: 1 };
-    let mut curr_board = board::blinker_board();
+    // STart game initialization
+    let mut curr_board = board::empty_board();
     let mut next_board = board::empty_board();
+    let mut game_params = GameParams{ iter: 0, speed: 1 };
+    let startgame = GameFile::Spaceship;
+    board::load_board_from_gamefile(startgame, &mut curr_board);
 
     // Game of life loop
     let mut paused = true;
     'gameloop: loop {
-
         while crossterm::event::poll(Duration::from_millis(7))? {
             if let Event::Key(key_event) = crossterm::event::read()? {
                 match key_event.code {
