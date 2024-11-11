@@ -1,6 +1,3 @@
-use std::fmt;
-use std::fmt::Formatter;
-
 // Import the files as string constants
 const GLIDER_GUN: &str = include_str!("data/glider_gun.life");
 const PULSAR: &str = include_str!("data/pulsar.life");
