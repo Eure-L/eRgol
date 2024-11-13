@@ -72,6 +72,16 @@ pub fn game_menu(game_params: &mut GameParams,
                     init_game(game_params, curr_board, next_board);
                     game_params.mode = GameModes::Playing;
                 }
+                KeyCode::Char('8') => {
+                    game_params.seed = GameSeed::HERSHEL;
+                    init_game(game_params, curr_board, next_board);
+                    game_params.mode = GameModes::Playing;
+                }
+                KeyCode::Char('9') => {
+                    game_params.seed = GameSeed::RLE28;
+                    init_game(game_params, curr_board, next_board);
+                    game_params.mode = GameModes::Playing;
+                }
                 _ => {}
             }
         }
