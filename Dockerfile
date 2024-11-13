@@ -5,4 +5,6 @@ WORKDIR /usr/src/app
 COPY . /usr/src/app
 
 RUN cargo install --path .
-RUN cargo build
+RUN cargo build --release
+
+ENTRYPOINT ["/usr/src/app/target/release/eRgol"]
