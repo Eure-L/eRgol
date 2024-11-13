@@ -1,10 +1,9 @@
+use crate::game_files::{get_content_from_seed, GameSeed};
+use crate::globals::{NUM_COLS, NUM_ROWS};
+use crate::{get, GameParams};
+use rand::Rng;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use rand::Rng;
-use crate::game_files::{get_content_from_seed, GameSeed};
-use crate::{board, get, GameModes, GameParams};
-use crate::game_loops::game_menu;
-use crate::globals::{NUM_COLS, NUM_ROWS};
 
 pub type Board = Vec<Vec<u8>>;
 
