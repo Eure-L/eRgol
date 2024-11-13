@@ -7,8 +7,8 @@ use crate::get;
 pub const BRAILLE_SIZE_X: u32 = 2;
 pub const BRAILLE_SIZE_Y: u32 = 4;
 
-pub const MAX_WIDTH: u32 = 375;  // Set your desired max width
-pub const MAX_HEIGHT: u32 = 95; // Set your desired max height
+pub const MAX_WIDTH: u32 = 1000;  // Set your desired max width
+pub const MAX_HEIGHT: u32 = 1000; // Set your desired max height
 
 
 lazy_static! {
@@ -26,7 +26,7 @@ lazy_static! {
     );
 }
 
-pub const BRAILE_ALPHABET_START: u32 = 0x2800;
+pub const BRAILLE_ALPHABET_START: u32 = 0x2800;
 
 // 280x 	⠀ 	⠁ 	⠂ 	⠃ 	⠄ 	⠅ 	⠆ 	⠇ 	⠈ 	⠉ 	⠊ 	⠋ 	⠌ 	⠍ 	⠎ 	⠏
 // U+281x 	⠐ 	⠑ 	⠒ 	⠓ 	⠔ 	⠕ 	⠖ 	⠗ 	⠘ 	⠙ 	⠚ 	⠛ 	⠜ 	⠝ 	⠞ 	⠟

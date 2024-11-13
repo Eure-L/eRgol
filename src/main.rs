@@ -6,9 +6,9 @@ mod macros;
 mod game_files;
 mod game_loops;
 
-use crate::board::Board;
-use crate::game_files::GameFile;
-use crate::game_loops::play;
+use crate::board::{init_game, Board};
+use crate::game_files::{GameSeed};
+use crate::game_loops::{game_menu, play};
 use crate::kernels::Kernels;
 use crate::render::rendering_tread;
 use crossterm;
@@ -34,19 +34,21 @@ impl Clone for GameModes {
 }
 
 struct GameParams {
-    iter: u32,
+    iteration: u32,
     speed: u32,
     paused: bool,
     mode: GameModes,
+    seed: GameSeed,
     kernel: Kernels,
 }
 
 impl GameParams {
     pub(crate) fn clone(&self) -> GameParams {
         GameParams {
-            iter: self.iter,
+            iteration: self.iteration,
             speed: self.speed,
             paused: self.paused,
+            seed: self.seed.clone(),
             mode: self.mode.clone(),
             kernel: self.kernel.clone(),
         }
@@ -57,7 +59,6 @@ struct Game {
     game_params: GameParams,
     board: Board,
 }
-
 
 fn main() -> Result<(), Box<dyn Error>> {
 
@@ -77,18 +78,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut curr_board = board::empty_board();
     let mut next_board = board::empty_board();
 
-    let startgame = GameFile::GliderGun;
-    let start_mode = GameModes::Playing;
-    let default_kernel = Kernels::CpuSequential;
-    let mut game_params = GameParams { iter: 0, speed: 1, paused: true, mode: start_mode, kernel: default_kernel };
+    let mut game_params = GameParams {
+        iteration: 0,
+        speed: 1,
+        paused: true,
+        mode: GameModes::Playing,
+        kernel: Kernels::CpuSequential,
+        seed: GameSeed::Braille,
+    };
 
-    board::load_board_from_gamefile(startgame, &mut curr_board);
+    init_game(&mut game_params, &mut curr_board, &mut next_board);
+
 
     // Game of life loop
     'gameloop: loop {
         let status = match game_params.mode {
             GameModes::Playing => { play(&mut game_params, &mut curr_board, &mut next_board, render_tx.clone()) }
-            GameModes::MainMenu => { Ok(()) }
+            GameModes::MainMenu => { game_menu(&mut game_params, &mut curr_board, &mut next_board, render_tx.clone()) }
         };
 
         match status {

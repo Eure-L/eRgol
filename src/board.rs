@@ -1,11 +1,21 @@
+use crate::game_files::{get_content_from_seed, GameSeed};
+use crate::globals::{NUM_COLS, NUM_ROWS};
+use crate::{get, GameParams};
+use rand::Rng;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use rand::Rng;
-use crate::game_files::{get_game_file_content, GameFile};
-use crate::get;
-use crate::globals::{NUM_COLS, NUM_ROWS};
 
 pub type Board = Vec<Vec<u8>>;
+
+
+pub fn init_game(game_params: &mut GameParams, curr_board: &mut Board, next_board: &mut Board) {
+    load_board_from_seed(game_params.seed.clone(), curr_board);
+    load_board_from_seed(game_params.seed.clone(), next_board);
+    game_params.iteration = 0;
+    game_params.speed = 1;
+    game_params.paused = true;
+}
+
 
 /// Returns an randomly composed board
 pub fn random_board() -> Board {
@@ -53,8 +63,8 @@ pub fn blinker_board() -> Board {
 }
 
 
-pub fn load_board_from_gamefile(file: GameFile, dst_board: &mut Board){
-    let file_content = get_game_file_content(file);
+pub fn load_board_from_seed(seed: GameSeed, dst_board: &mut Board){
+    let file_content = get_content_from_seed(seed);
     let mut lines = file_content.lines();
     let mut x_offset = 0;
     let mut y_offset = 0;
