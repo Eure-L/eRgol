@@ -1,10 +1,11 @@
 use crate::board::{init_game, Board};
 use crate::kernels::get_kernel_func;
-use crate::{Game, GameModes, GameParams};
+use crate::{GameModes, GameParams};
 use crossterm::event::{Event, KeyCode};
 use std::sync::mpsc::Sender;
 use std::time::Duration;
 use crate::game_files::GameSeed;
+use crate::game_structs::Game;
 
 fn step(update_fun: fn(&mut Board, &mut Board), curr_board: &mut Board, next_board: &mut Board) {
     update_fun(curr_board, next_board);
@@ -40,7 +41,6 @@ pub fn game_menu(game_params: &mut GameParams,
                     game_params.seed = GameSeed::Pulsar;
                     init_game(game_params, curr_board , next_board);
                     game_params.mode = GameModes::Playing;
-
                 }
                 KeyCode::Char('2') => {
                     game_params.seed = GameSeed::Braille;

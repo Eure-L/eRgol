@@ -2,6 +2,7 @@ use std::cmp;
 use lazy_static::lazy_static;
 use terminal_size::{Width, Height, terminal_size};
 use std::sync::RwLock;
+use crossterm::style::Color;
 use crate::get;
 
 pub const BRAILLE_SIZE_X: u32 = 2;
@@ -27,6 +28,11 @@ lazy_static! {
 }
 
 pub const BRAILLE_ALPHABET_START: u32 = 0x2800;
+pub const BG_GAME: Color = Color::Reset;
+pub const BG_MENU: Color = Color::DarkYellow;
+pub const COLOR_FONT: Color = Color::Black;
+
+
 
 // 280x 	⠀ 	⠁ 	⠂ 	⠃ 	⠄ 	⠅ 	⠆ 	⠇ 	⠈ 	⠉ 	⠊ 	⠋ 	⠌ 	⠍ 	⠎ 	⠏
 // U+281x 	⠐ 	⠑ 	⠒ 	⠓ 	⠔ 	⠕ 	⠖ 	⠗ 	⠘ 	⠙ 	⠚ 	⠛ 	⠜ 	⠝ 	⠞ 	⠟

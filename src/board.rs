@@ -82,7 +82,6 @@ pub fn load_board_from_seed(seed: GameSeed, dst_board: &mut Board){
             if parts.len() == 3 {
                 x_offset = parts[1].parse().unwrap_or(0);
                 y_offset = parts[2].parse().unwrap_or(0);
-                println!("x_offset: {}, y_offset: {}", x_offset, y_offset); // Example usage
             }
         }
     }
@@ -119,7 +118,6 @@ pub fn load_board_from_path(path: &str, dst_board: &mut Board){
             if parts.len() == 3 {
                 x_offset = parts[1].parse().unwrap_or(0);
                 y_offset = parts[2].parse().unwrap_or(0);
-                println!("x_offset: {}, y_offset: {}", x_offset, y_offset); // Example usage
             }
         }
     }

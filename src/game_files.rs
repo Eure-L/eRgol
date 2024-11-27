@@ -1,4 +1,7 @@
 use std::env::consts::OS;
+use std::fmt;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 // Import the files as string constants
 const GLIDER_GUN: &str = include_str!("seeds/glider_gun.life");
@@ -12,6 +15,7 @@ const HERSHEL: &str = include_str!("seeds/herschel_loop.life");
 const RLE28: &str = include_str!("seeds/herschel_loop.life");
 
 // Define an enum to identify each file
+#[derive(EnumIter, Debug, PartialEq)]
 pub enum GameSeed {
     GliderGun,
     Pulsar,
@@ -39,6 +43,23 @@ impl GameSeed {
         }
     }
 }
+
+impl fmt::Display for GameSeed {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            GameSeed::GliderGun =>  write!(f, "Glider Gun"),
+            GameSeed::Pulsar => write!(f, "Pulsar"),
+            GameSeed::Spaceship => write!(f, "Spaceship"),
+            GameSeed::SpaceshipFactory => write!(f, "Spaceship Factory"),
+            GameSeed::Braille => write!(f, "Braille"),
+            GameSeed::UnitCell => write!(f, "UnitCell"),
+            GameSeed::Oscillator => write!(f, "Oscillator"),
+            GameSeed::HERSHEL => write!(f, "HERSHEL"),
+            GameSeed::RLE28 => write!(f, "RLE28")
+        }
+    }
+}
+
 
 // Function to get the file content based on enum selection
 pub fn get_content_from_seed(file: GameSeed) -> &'static str {
