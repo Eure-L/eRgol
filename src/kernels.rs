@@ -3,7 +3,7 @@ use crate::globals::{NUM_COLS, NUM_ROWS};
 
 /// Updates a given board previous_board to in the next_board
 
-
+#[derive(Debug)]
 pub enum Kernels {
     CpuSequential,
     CpuSequentialTiled,

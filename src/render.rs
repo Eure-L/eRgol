@@ -1,57 +1,21 @@
-use std::cmp::min;
 use crate::board::Board;
 use crate::game_files::GameSeed;
-use crate::game_structs::{Game, DEFAULT_GAME_PARAMS};
-use crate::globals::{get_rendering_xsize, get_rendering_ysize, get_terminal_xsize, get_terminal_ysize, BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, NUM_COLS, NUM_ROWS};
+use crate::game_structs::{Game, Rendering, DEFAULT_GAME_PARAMS};
+use crate::globals::{get_rendering_xsize, get_rendering_ysize, BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, NUM_COLS, NUM_ROWS};
 use crate::ui::{Draw, TextBox};
-use crate::{board, get, GameModes, GameParams};
+use crate::{get, GameModes, GameParams};
 use crossterm::cursor::MoveTo;
 use crossterm::style::{Attribute, Color, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::QueueableCommand;
-use std::fmt::Debug;
-use std::io::{Stdout, Write};
-use std::ops::ControlFlow::Break;
-use std::sync::mpsc::Receiver;
 use simplelog;
+use std::fmt::Debug;
+use std::io::Stdout;
+use std::sync::mpsc::Receiver;
 use strum::IntoEnumIterator;
 
-fn render_vertical_wall(){
 
-}
-
-fn render_horizontal_wall(){
-
-
-}
-
-fn render_top_left_corner(){
-
-}
-fn render_top_right_corner(){
-
-}
-fn render_bottom_left_corner(){
-
-}
-fn render_bottom_right_corner(){
-
-}
-
-
-
-
-/// Renders the grid by computing corresponding braille character for each patch of alive/dead cells
-/// Uses Char arithmetic to render the correct Braille Unicode character, making it unsafe.
-pub(crate) unsafe fn render_braille(stdout: &mut Stdout, board: &Board, game_params: &GameParams, forced: bool) {
-    if forced
-    {
-        stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
-        stdout.queue(SetBackgroundColor(Color::Reset)).unwrap();
-        stdout.queue(Clear(ClearType::All)).unwrap();
-        stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
-    }
-
+unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
     const BASE: u32 = 2;
     // Braill blocks iteration
     for bloc_x in 0..get_rendering_xsize() {
@@ -94,21 +58,56 @@ pub(crate) unsafe fn render_braille(stdout: &mut Stdout, board: &Board, game_par
             print!("{}", char::from_u32_unchecked(code));
         }
     }
-    stdout.queue(SetBackgroundColor(Color::Reset)).unwrap();
-    stdout.queue(MoveTo(0, get_rendering_ysize() as u16)).unwrap();
-    print!("Iteration:{}        ", game_params.iteration);
-    stdout.queue(MoveTo(0, get_rendering_ysize() as u16 + 1)).unwrap();
-    print!("Speed:{}            ", game_params.speed);
-    stdout.queue(MoveTo(0, get_rendering_ysize() as u16 + 2)).unwrap();
-    print!("Pause:{}            ", game_params.paused);
-    stdout.queue(MoveTo(0, get_rendering_ysize() as u16 + 3)).unwrap();
-    print!("m: menu | p: pause | r: reset | s: step | +: speed up | -: slow down");
-    stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
-    stdout.flush().unwrap()
+}
+
+unsafe fn render_game_board(stdout: &mut Stdout, board: &Board, game_params: &GameParams){
+    match game_params.rendering {
+        Rendering::Braille => {
+            braille_rendering(stdout, board);
+        }
+    }
+}
+
+fn render_game_ui(stdout: &mut Stdout, game_params: &GameParams, forced :bool){
+
+    let text = vec![
+        game_params.iteration.to_string(),
+        game_params.rendering.to_string(),
+        game_params.speed.to_string(),
+        game_params.paused.to_string(),
+        "m: menu | p: pause | r: reset | s: step | +: speed up | -: slow down".to_string()
+    ];
+
+    let controlls_box = TextBox{
+        header: format!("Rendering: {} | Computing: {:?}", game_params.rendering, game_params.kernel),
+        header_color: COLOR_FONT,
+        header_attribute: Attribute::Bold,
+        text : text,
+        text_color: Color::Grey,
+        text_attribute: Attribute::Dim,
+        background_color: Color::DarkYellow,
+    };
+
+    controlls_box.draw_at(stdout, 0, get_rendering_ysize() as u16, forced);
+}
+
+
+pub(crate) unsafe fn render_board(stdout: &mut Stdout, board: &Board, game_params: &GameParams, forced: bool) {
+    if forced
+    {
+        stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Reset)).unwrap();
+        stdout.queue(Clear(ClearType::All)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
+    }
+
+    stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
+    render_game_board(stdout, board, game_params);
+    stdout.queue(SetForegroundColor(Color::Reset)).unwrap();
+    render_game_ui(stdout, game_params, forced);
 }
 
 pub(crate) fn render_menu(stdout: &mut Stdout, previous_board: &Board, game_params: &GameParams, forced: bool) {
-
 
     let X_CORNER: u16 = (2 * get!(NUM_BRAILLE_BLOCS_X) / 9 - 1) as u16;
     let Y_CORNER: u16 = (2 * get!(NUM_BRAILLE_BLOCS_Y) / 9 - 1) as u16;
@@ -148,7 +147,7 @@ pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
     };
 
     let mut previous_board = current_game.board;
-    render_braille(&mut stdout, &previous_board, &prev_game_params, true);
+    render_board(&mut stdout, &previous_board, &prev_game_params, true);
 
     loop {
         let current_game: Game = match render_rx.recv() {
@@ -166,7 +165,7 @@ pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
 
         match game_params.mode {
             GameModes::Playing => {
-                render_braille(&mut stdout, &current_game.board, &game_params, forced);
+                render_board(&mut stdout, &current_game.board, &game_params, forced);
             }
             GameModes::MainMenu => {
                 render_menu(&mut stdout, &current_game.board, &game_params, forced);

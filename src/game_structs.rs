@@ -10,6 +10,19 @@ pub enum GameModes {
     MainMenu,
 }
 
+#[derive(Display, PartialEq, Eq)]
+pub enum Rendering {
+    Braille
+}
+
+impl Rendering {
+    pub(crate) fn clone(&self) -> Rendering {
+        match self {
+            Rendering::Braille => Rendering::Braille,
+        }
+    }
+}
+
 impl Clone for GameModes {
     fn clone(&self) -> GameModes {
         match self {
@@ -26,6 +39,7 @@ pub(crate) struct GameParams {
     pub(crate) mode: GameModes,
     pub(crate) seed: GameSeed,
     pub(crate) kernel: Kernels,
+    pub(crate) rendering: Rendering,
 }
 
 impl GameParams {
@@ -37,6 +51,7 @@ impl GameParams {
             seed: self.seed.clone(),
             mode: self.mode.clone(),
             kernel: self.kernel.clone(),
+            rendering: self.rendering.clone(),
         }
     }
 }
@@ -48,6 +63,7 @@ pub const DEFAULT_GAME_PARAMS: GameParams = GameParams {
     mode: GameModes::Playing,    // Doesnt matter to the rendering thread
     seed: GameSeed::Braille,     // "
     kernel: CpuSequential,       // "
+    rendering: Rendering::Braille,
 };
 
 
