@@ -1,6 +1,4 @@
-use std::env::consts::OS;
 use std::fmt;
-use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 // Import the files as string constants
@@ -73,21 +71,5 @@ pub fn get_content_from_seed(file: GameSeed) -> &'static str {
         GameSeed::Oscillator => OSCILLATOR,
         GameSeed::HERSHEL => HERSHEL,
         GameSeed::RLE28 => RLE28,
-    }
-}
-
-// Function to get the file content based on enum selection
-pub fn get_game_file_content_from_str(name: &str) -> &'static str {
-    match name {
-        "glider_gun" => GLIDER_GUN,
-        "pulsar" => PULSAR,
-        "spaceship" => SPACESHIP,
-        "spaceship_factory" => SPACESHIP_FACTORY,
-        "braille" => BRAILLE,
-        "unit_cell" => UNIT_CELL,
-        "oscillator" => OSCILLATOR,
-        "hershel" => HERSHEL,
-        "rle28" => RLE28,
-        _ => BRAILLE
     }
 }

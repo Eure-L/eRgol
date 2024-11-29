@@ -5,30 +5,20 @@ use crate::globals::{NUM_COLS, NUM_ROWS};
 
 #[derive(Debug)]
 pub enum Kernels {
-    CpuSequential,
-    CpuSequentialTiled,
-    CpuMultiThreads,
-    GPU,
+    CpuSequential
 }
 
 impl Kernels {
     pub(crate) fn clone(&self) -> Kernels {
         match self {
-            Kernels::CpuSequential => Kernels::CpuSequential,
-            Kernels::CpuSequentialTiled => Kernels::CpuSequentialTiled,
-            Kernels::CpuMultiThreads => Kernels::CpuMultiThreads,
-            Kernels::GPU => Kernels::GPU,
+            Kernels::CpuSequential => Kernels::CpuSequential
         }
     }
 }
 
 pub fn get_kernel_func(kernel: Kernels) -> fn(&mut Board, &mut Board) {
     match kernel {
-        Kernels::CpuSequential => update_board,
-        Kernels::CpuSequentialTiled => panic!("Not implemented"),
-        Kernels::CpuMultiThreads => panic!("Not implemented"),
-        Kernels::GPU => panic!("Not implemented"),
-        _ => update_board
+        Kernels::CpuSequential => update_board
     }
 }
 

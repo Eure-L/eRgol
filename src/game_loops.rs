@@ -88,7 +88,7 @@ pub fn game_menu(game_params: &mut GameParams,
     }
 
     if !game_params.paused {
-        for step_id in 0..game_params.speed {
+        for _step_id in 0..game_params.speed {
             step(update_fun, curr_board, next_board);
         }
     }
@@ -152,7 +152,7 @@ pub fn play(game_params: &mut GameParams,
     }
 
     if !game_params.paused {
-        for step_id in 0..game_params.speed {
+        for _step_id in 0..game_params.speed {
             step(update_fun, curr_board, next_board);
         }
     }

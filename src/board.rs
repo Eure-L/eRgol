@@ -16,22 +16,6 @@ pub fn init_game(game_params: &mut GameParams, curr_board: &mut Board, next_boar
     game_params.paused = true;
 }
 
-
-/// Returns an randomly composed board
-pub fn random_board() -> Board {
-    let mut rng = rand::thread_rng();
-    let mut cols = Vec::with_capacity(get!(NUM_COLS) as usize);
-    for _ in 0..*NUM_COLS.read().unwrap()  as usize {
-        let mut col = Vec::with_capacity(get!(NUM_ROWS)  as usize);
-        for _ in 0..*NUM_ROWS.read().unwrap() as usize {
-
-            col.push(rng.gen_range(0..1));
-        }
-        cols.push(col)
-    }
-    cols
-}
-
 /// Returns an randomly composed board
 pub fn new_board(x_size: u16, y_size: u16) -> Board {
     let mut rng = rand::thread_rng();
@@ -60,26 +44,10 @@ pub fn empty_board() -> Board {
 }
 
 
-/// Returns a Board with 3 touching cells
-pub fn blinker_board() -> Board {
-    let mut cols = Vec::with_capacity(get!(NUM_COLS) as usize);
-    for _ in 0..*NUM_COLS.read().unwrap() as usize {
-        let mut col = Vec::with_capacity(get!(NUM_ROWS) as usize);
-        for _ in 0..*NUM_ROWS.read().unwrap() as usize{
-            col.push(0);
-        }
-        cols.push(col)
-    }
-    cols[10][10] = 1;
-    cols[10][11] = 1;
-    cols[10][9] = 1;
-    cols
-}
-
 fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
 
-    let BORDER_PADDING_X = 8;
-    let BORDER_PADDING_Y = 8;
+    let border_padding_x = 8;
+    let border_padding_y = 8;
 
     let mut max_width = 0;
     let mut max_height = 0;
@@ -101,8 +69,8 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
         } else if !line.is_empty() {
             // Check width and height based on the offset and content
             let width = line.len();
-            max_width = max_width.max(current_x_offset + width + BORDER_PADDING_X*2);
-            max_height = max_height.max(current_y_offset + iy + BORDER_PADDING_Y*2);
+            max_width = max_width.max(current_x_offset + width + border_padding_x *2);
+            max_height = max_height.max(current_y_offset + iy + border_padding_y *2);
             iy += 1;
         }
     }
@@ -117,8 +85,8 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
             // Parse offsets
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() == 3 {
-                current_x_offset = parts[1].parse().unwrap_or(0) + BORDER_PADDING_X;
-                current_y_offset = parts[2].parse().unwrap_or(0) + BORDER_PADDING_Y;
+                current_x_offset = parts[1].parse().unwrap_or(0) + border_padding_x;
+                current_y_offset = parts[2].parse().unwrap_or(0) + border_padding_y;
             }
         } else if !line.is_empty() {
             for (x, cell) in line.chars().enumerate() {
@@ -126,10 +94,10 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
                     let x_pos = current_x_offset + x;
                     let y_pos = current_y_offset;
 
+                    // Out of board bounds condition
                     if y_pos > new_board[x].len() as u16{
                         continue;
                     }
-
                     new_board[1 + x_pos as usize][ 1 + y_pos as usize] = 1;
                 }
             }
@@ -154,7 +122,7 @@ pub fn load_board_from_path(path: &str, dst_board: &mut Board){
         panic!("Failed to open file {}: {}", path, e);
     });
 
-    let mut reader = BufReader::new(file);
+    let reader = BufReader::new(file);
     let lines: Vec<String> = reader.lines().map(|l| l.expect("Failed to read line")).collect();
     load_board_from_lines(lines, dst_board)
 }

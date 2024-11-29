@@ -8,8 +8,6 @@ use crossterm::cursor::MoveTo;
 use crossterm::style::{Attribute, Color, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::QueueableCommand;
-use simplelog;
-use std::fmt::Debug;
 use std::io::Stdout;
 use std::sync::mpsc::Receiver;
 use strum::IntoEnumIterator;
@@ -107,10 +105,10 @@ pub(crate) unsafe fn render_board(stdout: &mut Stdout, board: &Board, game_param
     render_game_ui(stdout, game_params, forced);
 }
 
-pub(crate) fn render_menu(stdout: &mut Stdout, previous_board: &Board, game_params: &GameParams, forced: bool) {
+pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced: bool) {
 
-    let X_CORNER: u16 = (2 * get!(NUM_BRAILLE_BLOCS_X) / 9 - 1) as u16;
-    let Y_CORNER: u16 = (2 * get!(NUM_BRAILLE_BLOCS_Y) / 9 - 1) as u16;
+    let x_corner: u16 = (2 * get!(NUM_BRAILLE_BLOCS_X) / 9 - 1) as u16;
+    let y_corner: u16 = (2 * get!(NUM_BRAILLE_BLOCS_Y) / 9 - 1) as u16;
 
     let seed_box = TextBox{
         header: "Available SEEDS".parse().unwrap(),
@@ -132,8 +130,8 @@ pub(crate) fn render_menu(stdout: &mut Stdout, previous_board: &Board, game_para
         background_color: Color::Yellow,
     };
 
-    controlls_box.draw_at(stdout, X_CORNER, Y_CORNER, forced);
-    seed_box.draw_at(stdout, X_CORNER, Y_CORNER + 8, forced);
+    controlls_box.draw_at(stdout, x_corner, y_corner, forced);
+    seed_box.draw_at(stdout, x_corner, y_corner + 8, forced);
 
 }
 
@@ -141,12 +139,12 @@ pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
     let mut stdout = std::io::stdout();
     let mut prev_game_params: GameParams = DEFAULT_GAME_PARAMS.clone();
 
-    let mut current_game: Game = match render_rx.recv() {
+    let current_game: Game = match render_rx.recv() {
         Ok(rcv_game) => { rcv_game }
         Err(_) => return,
     };
 
-    let mut previous_board = current_game.board;
+    let previous_board = current_game.board;
     render_board(&mut stdout, &previous_board, &prev_game_params, true);
 
     loop {
@@ -155,7 +153,6 @@ pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
             Err(_) => break,
         };
 
-        // let curr_board = current_game.board;
         let game_params = current_game.game_params.clone();
         let mut forced = false;
 
@@ -168,11 +165,9 @@ pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
                 render_board(&mut stdout, &current_game.board, &game_params, forced);
             }
             GameModes::MainMenu => {
-                render_menu(&mut stdout, &current_game.board, &game_params, forced);
+                render_menu(&mut stdout, &game_params, forced);
             }
         }
-
         prev_game_params = game_params.clone();
-        previous_board = current_game.board;
     }
 }

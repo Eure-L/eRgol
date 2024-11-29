@@ -33,12 +33,12 @@ pub(crate) struct StyledString {
 }
 
 impl Draw for StyledBox {
-    fn draw_at(&self, stdout: &mut Stdout, pos_x: u16, pos_y: u16, forced: bool) {
+    fn draw_at(&self, stdout: &mut Stdout, pos_x: u16, pos_y: u16, _forced: bool) {
         stdout.queue(SetBackgroundColor(self.color)).expect("TODO: panic message");
         for iy in 0..self.height {
-            stdout.queue(MoveTo(pos_x, (pos_y + iy))).expect("TODO: panic message");
+            stdout.queue(MoveTo(pos_x, pos_y + iy)).expect("TODO: panic message");
             for ix in 0..self.width {
-                stdout.queue(MoveTo((ix + pos_x), (pos_y + iy))).expect("Idk, I guess it couldnt move the ponter ?");
+                stdout.queue(MoveTo(ix + pos_x, pos_y + iy)).expect("Idk, I guess it couldnt move the ponter ?");
                 stdout.queue(Print(" ")).expect("Idk, I guess it couldnt print the box ?");
             }
         }
@@ -47,7 +47,7 @@ impl Draw for StyledBox {
 }
 
 impl Draw for StyledString {
-    fn draw_at(&self, stdout: &mut Stdout, pos_x: u16, pos_y: u16, forced: bool) {
+    fn draw_at(&self, stdout: &mut Stdout, pos_x: u16, pos_y: u16, _forced: bool) {
         stdout.queue(MoveTo(pos_x, pos_y)).expect("Idk, I guess it couldnt move the ponter ?");
         stdout.queue(PrintStyledContent(
             self.string.clone()
@@ -61,7 +61,7 @@ impl Draw for TextBox {
     fn draw_at(&self, stdout: &mut Stdout, pos_x: u16, pos_y: u16, forced: bool) {
 
         // Draw backound Box first
-        if forced{
+        if forced {
             let width_text = 2 + self.text.iter().map(|x| x.clone().len()).max().unwrap_or(16) as u16;
             let width_header = self.header.len() as u16;
             let width = 2 + vec![width_text, width_header].iter().max().unwrap();
