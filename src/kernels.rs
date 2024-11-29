@@ -1,7 +1,7 @@
 use crate::board::Board;
 use crate::globals::{NUM_COLS, NUM_ROWS};
 
-/// Updates a given board prev_board to in the next_board
+/// Updates a given board previous_board to in the next_board
 
 
 pub enum Kernels {
@@ -32,21 +32,21 @@ pub fn get_kernel_func(kernel: Kernels) -> fn(&mut Board, &mut Board) {
     }
 }
 
-pub fn update_board(prev_board: &mut Board, next_board: &mut Board){
+pub fn update_board(previous_board: &mut Board, next_board: &mut Board){
     // Inner board computation as the edges are off
     for ix in 1..*NUM_COLS.read().unwrap() as usize -1 {
         for iy in 1..*NUM_ROWS.read().unwrap() as usize -1{
             let total_neighbors =
-                    prev_board[ix][iy-1] +
-                    prev_board[ix][iy+1] +
-                    prev_board[ix-1][iy] +
-                    prev_board[ix+1][iy] +
-                    prev_board[ix+1][iy-1] +
-                    prev_board[ix-1][iy+1] +
-                    prev_board[ix-1][iy-1] +
-                    prev_board[ix+1][iy+1];
+                    previous_board[ix][iy-1] +
+                    previous_board[ix][iy+1] +
+                    previous_board[ix-1][iy] +
+                    previous_board[ix+1][iy] +
+                    previous_board[ix+1][iy-1] +
+                    previous_board[ix-1][iy+1] +
+                    previous_board[ix-1][iy-1] +
+                    previous_board[ix+1][iy+1];
 
-            if prev_board[ix][iy] == 1 {
+            if previous_board[ix][iy] == 1 {
                 next_board[ix][iy] = match total_neighbors {
                     3 => {1}
                     2 => {1}

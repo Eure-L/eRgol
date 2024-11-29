@@ -8,10 +8,8 @@ mod game_loops;
 mod ui;
 mod game_structs;
 
-use crate::board::{init_game, Board};
-use crate::game_files::{GameSeed};
+use crate::board::{init_game};
 use crate::game_loops::{game_menu, play};
-use crate::kernels::Kernels;
 use crate::render::rendering_tread;
 use crossterm;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
@@ -22,7 +20,19 @@ use std::error::Error;
 use std::sync::mpsc;
 use crate::game_structs::{GameModes, GameParams, DEFAULT_GAME_PARAMS};
 
+use simplelog;
+use std::fs::File;
+
 fn main() -> Result<(), Box<dyn Error>> {
+
+    simplelog::CombinedLogger::init(vec![
+        simplelog::WriteLogger::new(
+            simplelog::LevelFilter::Info,
+            simplelog::Config::default(),
+            File::create("app.log").unwrap(),
+        ),
+    ]).unwrap();
+
 
     // Switch to alternate terminal
     let mut stdout = std::io::stdout();
