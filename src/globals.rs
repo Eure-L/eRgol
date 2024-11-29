@@ -33,7 +33,7 @@ pub fn get_rendering_xsize() -> u32{
 
 lazy_static! {
     pub static ref NUM_BRAILLE_BLOCS_Y: RwLock<u32> = RwLock::new(
-        cmp::min(terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32 - 5, MAX_HEIGHT)
+        cmp::min(terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32, MAX_HEIGHT)
     );
     pub static ref NUM_BRAILLE_BLOCS_X: RwLock<u32> = RwLock::new(
         cmp::min(terminal_size().map(|(Width(w), _)| w).unwrap_or(42) as u32, MAX_WIDTH)
@@ -41,7 +41,7 @@ lazy_static! {
 
     //
     pub static ref INIT_BOARD_SIZE_Y: RwLock<u32> = RwLock::new(
-        terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32 - 5 * BRAILLE_SIZE_Y
+        terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32 * BRAILLE_SIZE_Y
     );
     pub static ref INIT_BOARD_SIZE_X: RwLock<u32> = RwLock::new(
         terminal_size().map(|(Width(w), _)| w).unwrap_or(42) as u32 * BRAILLE_SIZE_X

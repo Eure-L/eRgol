@@ -24,14 +24,14 @@ unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
             let mut code = BRAILLE_ALPHABET_START; // Code of corresponding unicode char for this brail code
             for ix in 0..BRAILLE_SIZE_X {
                 let x = bloc_x * BRAILLE_SIZE_X + ix;
-                if x > get!(NUM_COLS){
+                if x >= get!(NUM_COLS){
                     break;
                 }
 
                 // First 6 Braille cells pattern computing
                 for iy in 0..BRAILLE_SIZE_Y - 1 {
                     let y = bloc_y * BRAILLE_SIZE_Y + iy;
-                    if y > get!(NUM_ROWS){
+                    if y >= get!(NUM_ROWS){
                         break;
                     }
 
@@ -44,7 +44,7 @@ unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
 
                 // Two last Braille cells
                 let y = bloc_y * (BRAILLE_SIZE_Y) + BRAILLE_SIZE_Y - 1;
-                if y > get!(NUM_ROWS){
+                if y >= get!(NUM_ROWS){
                     break;
                 }
                 let weight = match board[x as usize][y as usize] {

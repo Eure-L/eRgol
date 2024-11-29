@@ -77,6 +77,10 @@ pub fn blinker_board() -> Board {
 }
 
 fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
+
+    let BORDER_PADDING_X = 8;
+    let BORDER_PADDING_Y = 8;
+
     let mut max_width = 0;
     let mut max_height = 0;
 
@@ -97,13 +101,13 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
         } else if !line.is_empty() {
             // Check width and height based on the offset and content
             let width = line.len();
-            max_width = max_width.max(current_x_offset + width);
-            max_height = max_height.max(current_y_offset + iy);
+            max_width = max_width.max(current_x_offset + width + BORDER_PADDING_X*2);
+            max_height = max_height.max(current_y_offset + iy + BORDER_PADDING_Y*2);
             iy += 1;
         }
     }
 
-    let mut new_board = new_board((max_width + 2) as u16, max_height + 2);
+    let mut new_board = new_board(max_width as u16, max_height );
 
     // 3rd: Populate the board
     current_x_offset = 0;
@@ -113,8 +117,8 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
             // Parse offsets
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() == 3 {
-                current_x_offset = parts[1].parse().unwrap_or(0);
-                current_y_offset = parts[2].parse().unwrap_or(0);
+                current_x_offset = parts[1].parse().unwrap_or(0) + BORDER_PADDING_X;
+                current_y_offset = parts[2].parse().unwrap_or(0) + BORDER_PADDING_Y;
             }
         } else if !line.is_empty() {
             for (x, cell) in line.chars().enumerate() {
