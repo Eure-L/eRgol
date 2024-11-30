@@ -2,10 +2,10 @@ use crate::board::Board;
 use crate::game_files::GameSeed;
 use crate::game_structs::{Game, Rendering, DEFAULT_GAME_PARAMS};
 use crate::globals::{get_rendering_xsize, get_rendering_ysize, BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, NUM_COLS, NUM_ROWS};
-use crate::ui::{Draw, TextBox};
+use crate::ui::{Drawable, InterractiveDrawable, InterractiveTextBox, TextBox};
 use crate::{get, GameModes, GameParams};
 use crossterm::cursor::MoveTo;
-use crossterm::style::{Attribute, Color, SetBackgroundColor, SetForegroundColor};
+use crossterm::style::{Attribute, Color, Print, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::QueueableCommand;
 use std::io::Stdout;
@@ -53,7 +53,7 @@ unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
                 code = code + weight;
             }
             stdout.queue(MoveTo(bloc_x as u16, bloc_y as u16)).unwrap();
-            print!("{}", char::from_u32_unchecked(code));
+            stdout.queue(Print(char::from_u32_unchecked(code))).unwrap();
         }
     }
 }
@@ -68,22 +68,32 @@ unsafe fn render_game_board(stdout: &mut Stdout, board: &Board, game_params: &Ga
 
 fn render_game_ui(stdout: &mut Stdout, game_params: &GameParams, forced :bool){
 
+
+    let pause_str = if game_params.paused {
+        "Paused_"
+    } else {
+        "Playing"
+    }.to_string();
+
     let text = vec![
-        game_params.iteration.to_string(),
-        game_params.rendering.to_string(),
-        game_params.speed.to_string(),
-        game_params.paused.to_string(),
+        format!("{}",pause_str),
+        format!("Step n°: {}",game_params.iteration),
+        format!("Speed:   {}",game_params.speed),
+        format!("Game seed:   {}",game_params.seed),
+        format!("id:   {}",game_params.menu_scroll),
+        format!("Rendering Mode: {}",game_params.rendering),
+        format!("Computing Kernel: {:?}",game_params.kernel),
         "m: menu | p: pause | r: reset | s: step | +: speed up | -: slow down".to_string()
     ];
 
     let controlls_box = TextBox{
         header: format!("Rendering: {} | Computing: {:?}", game_params.rendering, game_params.kernel),
-        header_color: COLOR_FONT,
+        header_color: Color::White,
         header_attribute: Attribute::Bold,
         text : text,
-        text_color: Color::Grey,
-        text_attribute: Attribute::Dim,
-        background_color: Color::DarkYellow,
+        text_color: Color::White,
+        text_attribute: Attribute::Reset,
+        background_color: Color::Reset,
     };
 
     controlls_box.draw_at(stdout, 0, get_rendering_ysize() as u16, forced);
@@ -100,6 +110,7 @@ pub(crate) unsafe fn render_board(stdout: &mut Stdout, board: &Board, game_param
     }
 
     stdout.queue(SetForegroundColor(Color::Yellow)).unwrap();
+    stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     render_game_board(stdout, board, game_params);
     stdout.queue(SetForegroundColor(Color::Reset)).unwrap();
     render_game_ui(stdout, game_params, forced);
@@ -110,7 +121,7 @@ pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced:
     let x_corner: u16 = (2 * get!(NUM_BRAILLE_BLOCS_X) / 9 - 1) as u16;
     let y_corner: u16 = (2 * get!(NUM_BRAILLE_BLOCS_Y) / 9 - 1) as u16;
 
-    let seed_box = TextBox{
+    let seed_box = InterractiveTextBox{
         header: "Available SEEDS".parse().unwrap(),
         header_color: COLOR_FONT,
         header_attribute: Attribute::Bold,
@@ -131,7 +142,7 @@ pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced:
     };
 
     controlls_box.draw_at(stdout, x_corner, y_corner, forced);
-    seed_box.draw_at(stdout, x_corner, y_corner + 8, forced);
+    seed_box.draw_with_input(stdout, x_corner, y_corner + 8, game_params, forced);
 
 }
 

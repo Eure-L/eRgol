@@ -11,6 +11,7 @@ const UNIT_CELL: &str = include_str!("seeds/unit_cell.life");
 const OSCILLATOR: &str = include_str!("seeds/oscillator.life");
 const HERSHEL: &str = include_str!("seeds/herschel_loop.life");
 const RLE28: &str = include_str!("seeds/herschel_loop.life");
+const PUFFER: &str = include_str!("seeds/puffer.life");
 
 // Define an enum to identify each file
 #[derive(EnumIter, Debug, PartialEq)]
@@ -24,6 +25,7 @@ pub enum GameSeed {
     Oscillator,
     HERSHEL,
     RLE28,
+    PUFFER
 }
 
 impl GameSeed {
@@ -38,6 +40,7 @@ impl GameSeed {
             GameSeed::Oscillator => GameSeed::Oscillator,
             GameSeed::HERSHEL => GameSeed::HERSHEL,
             GameSeed::RLE28 => GameSeed::RLE28,
+            GameSeed::PUFFER => GameSeed::PUFFER,
         }
     }
 }
@@ -53,7 +56,8 @@ impl fmt::Display for GameSeed {
             GameSeed::UnitCell => write!(f, "UnitCell"),
             GameSeed::Oscillator => write!(f, "Oscillator"),
             GameSeed::HERSHEL => write!(f, "HERSHEL"),
-            GameSeed::RLE28 => write!(f, "RLE28")
+            GameSeed::RLE28 => write!(f, "RLE28"),
+            GameSeed::PUFFER => write!(f, "PUFFER"),
         }
     }
 }
@@ -71,5 +75,6 @@ pub fn get_content_from_seed(file: GameSeed) -> &'static str {
         GameSeed::Oscillator => OSCILLATOR,
         GameSeed::HERSHEL => HERSHEL,
         GameSeed::RLE28 => RLE28,
+        GameSeed::PUFFER => PUFFER,
     }
 }

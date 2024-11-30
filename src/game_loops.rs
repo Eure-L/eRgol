@@ -1,9 +1,10 @@
 use crate::board::{init_game, Board};
 use crate::kernels::get_kernel_func;
 use crate::{GameModes, GameParams};
-use crossterm::event::{Event, KeyCode};
+use crossterm::event::{Event, KeyCode, MouseEventKind};
 use std::sync::mpsc::Sender;
 use std::time::Duration;
+use strum::IntoEnumIterator;
 use crate::game_files::GameSeed;
 use crate::game_structs::Game;
 
@@ -13,74 +14,61 @@ fn step(update_fun: fn(&mut Board, &mut Board), curr_board: &mut Board, next_boa
 }
 
 pub fn game_menu(game_params: &mut GameParams,
-             curr_board: &mut Board,
-             next_board: &mut Board,
-             render_tx: Sender<Game>) -> Result<(), String>
+                 curr_board: &mut Board,
+                 next_board: &mut Board,
+                 render_tx: Sender<Game>) -> Result<(), String>
 {
     let update_fun = get_kernel_func(game_params.clone().kernel);
 
     while crossterm::event::poll(Duration::from_millis(7)).unwrap_or(false) {
-        if let Ok(Event::Key(key_event)) = crossterm::event::read() {
-            match key_event.code {
-                KeyCode::Backspace => { game_params.paused = !game_params.paused }
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    return Err("user quit".parse().unwrap());
+        if let Ok(event) = crossterm::event::read() {
+            match event {
+                Event::Mouse(mouse_event) => {
+                    match mouse_event.kind {
+                        MouseEventKind::ScrollUp => {
+                            game_params.menu_scroll -= 1;
+                        }
+                        MouseEventKind::ScrollDown => {
+                            game_params.menu_scroll += 1;
+                        }
+                        _ => {}
+                    }
                 }
-                // Pause/unpause
-                KeyCode::Char('m') => {
-                    game_params.mode = GameModes::Playing;
-                }                    // Pause/unpause
-                KeyCode::Char('s') => {
-                    step(update_fun, curr_board, next_board)
-                }                // Pause/unpause
-                KeyCode::Char('r') => {
-                    game_params.mode = GameModes::Playing;
-                    init_game(game_params, curr_board, next_board);
-                }
-                KeyCode::Char('1') => {
-                    game_params.seed = GameSeed::Pulsar;
-                    init_game(game_params, curr_board , next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('2') => {
-                    game_params.seed = GameSeed::Braille;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('3') => {
-                    game_params.seed = GameSeed::GliderGun;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('4') => {
-                    game_params.seed = GameSeed::Spaceship;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('5') => {
-                    game_params.seed = GameSeed::Oscillator;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('6') => {
-                    game_params.seed = GameSeed::SpaceshipFactory;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('7') => {
-                    game_params.seed = GameSeed::UnitCell;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('8') => {
-                    game_params.seed = GameSeed::HERSHEL;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
-                }
-                KeyCode::Char('9') => {
-                    game_params.seed = GameSeed::RLE28;
-                    init_game(game_params, curr_board, next_board);
-                    game_params.mode = GameModes::Playing;
+                Event::Key(key_event) => {
+                    match key_event.code {
+                        KeyCode::Backspace => {
+                            game_params.paused = !game_params.paused;
+                        }
+                        KeyCode::Esc | KeyCode::Char('q') => {
+                            return Err("user quit".parse().unwrap());
+                        }
+                        KeyCode::Char('m') => {
+                            game_params.mode = GameModes::Playing;
+                        }
+                        KeyCode::Char('s') => {
+                            step(update_fun, curr_board, next_board);
+                        }
+                        KeyCode::Char('r') => {
+                            game_params.mode = GameModes::Playing;
+                            init_game(game_params, curr_board, next_board);
+                        }
+                        KeyCode::Down => {
+                            game_params.menu_scroll += 1;
+                        }
+                        KeyCode::Up => {
+                            if game_params.menu_scroll > 0 {
+                                game_params.menu_scroll -= 1;
+                            }
+                        }
+                        KeyCode::Enter => {
+                            let seed_id = (game_params.menu_scroll % (GameSeed::iter().len() as u32)) as usize;
+                            game_params.seed = GameSeed::iter().collect::<Vec<GameSeed>>()[seed_id].clone();
+
+                            init_game(game_params, curr_board, next_board);
+                            game_params.mode = GameModes::Playing;
+                        }
+                        _ => {}
+                    }
                 }
                 _ => {}
             }

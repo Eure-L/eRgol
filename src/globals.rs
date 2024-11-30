@@ -51,6 +51,8 @@ pub const BG_GAME: Color = Color::Reset;
 pub const BG_MENU: Color = Color::DarkYellow;
 pub const COLOR_FONT: Color = Color::Black;
 
+pub const ORANGE: Color = Color::Rgb {r: 0xE5, g: 0x53, b: 0x0};
+
 
 
 // 280x 	⠀ 	⠁ 	⠂ 	⠃ 	⠄ 	⠅ 	⠆ 	⠇ 	⠈ 	⠉ 	⠊ 	⠋ 	⠌ 	⠍ 	⠎ 	⠏

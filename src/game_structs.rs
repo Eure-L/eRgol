@@ -40,6 +40,7 @@ pub(crate) struct GameParams {
     pub(crate) seed: GameSeed,
     pub(crate) kernel: Kernels,
     pub(crate) rendering: Rendering,
+    pub(crate) menu_scroll: u32,
 }
 
 impl GameParams {
@@ -52,6 +53,7 @@ impl GameParams {
             mode: self.mode.clone(),
             kernel: self.kernel.clone(),
             rendering: self.rendering.clone(),
+            menu_scroll: self.menu_scroll,
         }
     }
 }
@@ -64,6 +66,7 @@ pub const DEFAULT_GAME_PARAMS: GameParams = GameParams {
     seed: GameSeed::Braille,     // "
     kernel: CpuSequential,       // "
     rendering: Rendering::Braille,
+    menu_scroll: 0,
 };
 
 
