@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+use std::string::ToString;
 use strum_macros::Display;
 use crate::board::Board;
-use crate::game_files::GameSeed;
 use crate::kernels::Kernels;
 use crate::kernels::Kernels::CpuSequential;
 
@@ -37,7 +38,7 @@ pub(crate) struct GameParams {
     pub(crate) speed: u32,
     pub(crate) paused: bool,
     pub(crate) mode: GameModes,
-    pub(crate) seed: GameSeed,
+    pub(crate) seed: PathBuf,
     pub(crate) kernel: Kernels,
     pub(crate) rendering: Rendering,
     pub(crate) menu_scroll: u32,
@@ -56,18 +57,20 @@ impl GameParams {
             menu_scroll: self.menu_scroll,
         }
     }
-}
 
-pub const DEFAULT_GAME_PARAMS: GameParams = GameParams {
-    iteration: 0,
-    speed: 1,
-    paused: true,                // "
-    mode: GameModes::Playing,    // Doesnt matter to the rendering thread
-    seed: GameSeed::Braille,     // "
-    kernel: CpuSequential,       // "
-    rendering: Rendering::Braille,
-    menu_scroll: 0,
-};
+    pub fn default() -> GameParams {
+        GameParams {
+            iteration: 0,
+            speed: 1,
+            paused: true,                // "
+            mode: GameModes::Playing,    // Doesnt matter to the rendering thread
+            seed: PathBuf::from("src/seeds/braille.life"),     // "
+            kernel: CpuSequential,       // "
+            rendering: Rendering::Braille,
+            menu_scroll: 0,
+        }
+    }
+}
 
 
 pub struct Game {

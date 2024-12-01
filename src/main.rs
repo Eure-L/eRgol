@@ -18,7 +18,7 @@ use crossterm::cursor;
 use std;
 use std::error::Error;
 use std::sync::mpsc;
-use crate::game_structs::{GameModes, GameParams, DEFAULT_GAME_PARAMS};
+use crate::game_structs::{GameModes, GameParams};
 
 use simplelog;
 use std::fs::File;
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Game initialization
     let mut curr_board = board::empty_board();
     let mut next_board = board::empty_board();
-    let mut game_params = DEFAULT_GAME_PARAMS.clone();
+    let mut game_params = GameParams::default();
 
     init_game(&mut game_params, &mut curr_board, &mut next_board);
 

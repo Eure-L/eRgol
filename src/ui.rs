@@ -1,12 +1,10 @@
+use crate::game_files::get_seed_files_list;
+use crate::game_structs::GameParams;
+use crate::globals::{BG_MENU, ORANGE};
 use crossterm::cursor::MoveTo;
 use crossterm::style::{Attribute, Color, Print, PrintStyledContent, SetBackgroundColor, Stylize};
 use crossterm::QueueableCommand;
 use std::io::{Stdout, Write};
-use crossterm::style::Colored::BackgroundColor;
-use strum::IntoEnumIterator;
-use crate::game_files::GameSeed;
-use crate::game_structs::GameParams;
-use crate::globals::{BG_MENU, ORANGE};
 
 
 #[derive(Debug)]
@@ -139,13 +137,12 @@ impl InterractiveDrawable for InterractiveTextBox {
 
         for (idx, text_str) in self.text.iter().enumerate() {
 
-            let seed_id = (game_params.menu_scroll % (GameSeed::iter().len() as u32)) as usize;
+            let seed_id = (game_params.menu_scroll % (get_seed_files_list().len() as u32)) as usize;
             if seed_id == idx {
                 stdout.queue(SetBackgroundColor(ORANGE)).expect("TODO: panic message");
             }else {
                 stdout.queue(SetBackgroundColor(BG_MENU)).expect("TODO: panic message");
             }
-            // game_params.seed = GameSeed::iter().collect::<Vec<GameSeed>>()[seed_id].clone();
 
             stdout.queue(MoveTo(pos_x + 1, pos_y + iy)).expect("Idk, I guess it couldnt move the ponter ?");
             stdout.queue(PrintStyledContent(

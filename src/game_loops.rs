@@ -5,7 +5,7 @@ use crossterm::event::{Event, KeyCode, MouseEventKind};
 use std::sync::mpsc::Sender;
 use std::time::Duration;
 use strum::IntoEnumIterator;
-use crate::game_files::GameSeed;
+use crate::game_files::get_seed_file_from_index;
 use crate::game_structs::Game;
 
 fn step(update_fun: fn(&mut Board, &mut Board), curr_board: &mut Board, next_board: &mut Board) {
@@ -61,9 +61,7 @@ pub fn game_menu(game_params: &mut GameParams,
                             }
                         }
                         KeyCode::Enter => {
-                            let seed_id = (game_params.menu_scroll % (GameSeed::iter().len() as u32)) as usize;
-                            game_params.seed = GameSeed::iter().collect::<Vec<GameSeed>>()[seed_id].clone();
-
+                            game_params.seed = get_seed_file_from_index(game_params.menu_scroll).parse().unwrap();
                             init_game(game_params, curr_board, next_board);
                             game_params.mode = GameModes::Playing;
                         }

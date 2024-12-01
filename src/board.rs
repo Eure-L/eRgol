@@ -1,16 +1,17 @@
-use crate::game_files::{get_content_from_seed, GameSeed};
+use crate::game_files::{read_file_lines,};
 use crate::globals::{NUM_COLS, NUM_ROWS};
 use crate::{get, set, GameParams};
 use rand::Rng;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 
 pub type Board = Vec<Vec<u8>>;
 
 
 pub fn init_game(game_params: &mut GameParams, curr_board: &mut Board, next_board: &mut Board) {
-    load_board_from_seed(game_params.seed.clone(), curr_board);
-    load_board_from_seed(game_params.seed.clone(), next_board);
+    load_board_from_seed(game_params.seed.to_str().unwrap().to_string(), curr_board);
+    load_board_from_seed(game_params.seed.to_str().unwrap().to_string(), next_board);
     game_params.iteration = 0;
     game_params.speed = 1;
     game_params.paused = true;
@@ -111,9 +112,8 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
 }
 
 
-pub fn load_board_from_seed(seed: GameSeed, dst_board: &mut Board)  {
-    let file_content = get_content_from_seed(seed);
-    let lines: Vec<String> = file_content.lines().map(|x| {x.to_string()}).collect();
+pub fn load_board_from_seed(seed: String, dst_board: &mut Board)  {
+    let lines: Vec<String> = read_file_lines(&*PathBuf::from(seed)).unwrap();
     load_board_from_lines(lines, dst_board)
 }
 

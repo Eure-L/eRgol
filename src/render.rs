@@ -1,6 +1,6 @@
 use crate::board::Board;
-use crate::game_files::GameSeed;
-use crate::game_structs::{Game, Rendering, DEFAULT_GAME_PARAMS};
+use crate::game_files::get_seed_files_list;
+use crate::game_structs::{Game, Rendering};
 use crate::globals::{get_rendering_xsize, get_rendering_ysize, BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, NUM_COLS, NUM_ROWS};
 use crate::ui::{Drawable, InterractiveDrawable, InterractiveTextBox, TextBox};
 use crate::{get, GameModes, GameParams};
@@ -10,7 +10,6 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::QueueableCommand;
 use std::io::Stdout;
 use std::sync::mpsc::Receiver;
-use strum::IntoEnumIterator;
 
 
 unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
@@ -79,7 +78,7 @@ fn render_game_ui(stdout: &mut Stdout, game_params: &GameParams, forced :bool){
         format!("{}",pause_str),
         format!("Step n°: {}",game_params.iteration),
         format!("Speed:   {}",game_params.speed),
-        format!("Game seed:   {}",game_params.seed),
+        format!("Game seed:   {:?}",game_params.seed),
         format!("id:   {}",game_params.menu_scroll),
         format!("Rendering Mode: {}",game_params.rendering),
         format!("Computing Kernel: {:?}",game_params.kernel),
@@ -125,7 +124,7 @@ pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced:
         header: "Available SEEDS".parse().unwrap(),
         header_color: COLOR_FONT,
         header_attribute: Attribute::Bold,
-        text : GameSeed::iter().map(|x| {x.to_string()}).collect(),
+        text : get_seed_files_list(),//GameSeed::iter().map(|x| {x.to_string()}).collect(),
         text_color: COLOR_FONT,
         text_attribute: Attribute::NoBold,
         background_color: Color::DarkYellow,
@@ -148,7 +147,7 @@ pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced:
 
 pub(crate) unsafe fn rendering_tread(render_rx: &Receiver<Game>) {
     let mut stdout = std::io::stdout();
-    let mut prev_game_params: GameParams = DEFAULT_GAME_PARAMS.clone();
+    let mut prev_game_params: GameParams = GameParams::default();
 
     let current_game: Game = match render_rx.recv() {
         Ok(rcv_game) => { rcv_game }
