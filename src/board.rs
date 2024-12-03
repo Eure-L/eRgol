@@ -1,51 +1,69 @@
-use crate::game_files::{read_file_lines,};
-use crate::globals::{NUM_COLS, NUM_ROWS};
-use crate::{get, set, GameParams};
-use rand::Rng;
+use crate::game_files::read_file_lines;
+use crate::GameParams;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::ops::{Index, IndexMut};
+use std::path::PathBuf;
 
-pub type Board = Vec<Vec<u8>>;
+pub struct Board  {
+    next_data: Vec<u8>,
+    prev_data: Vec<u8>,
+    pub(crate) rows: usize,
+    pub(crate) cols: usize,
+}
+
+impl Board {
+    pub fn new(cols: usize, rows: usize) -> Self {
+        Board {
+            next_data: vec![0u8; rows * cols],
+            prev_data: vec![0u8; rows * cols],
+            rows,
+            cols,
+        }
+    }
+    pub fn swap_data(&mut self) {
+        std::mem::swap(&mut self.prev_data, &mut self.next_data);
+    }
+}
+
+impl Clone for Board{
+    fn clone(&self) -> Self {
+        let mut new_board = Board::new(self.rows, self.cols);
+         new_board
+    }
+}
+
+impl Index<(usize, usize)> for Board {
+    type Output = u8;
+
+    fn index(&self, (col, row): (usize, usize)) -> &Self::Output {
+        let index = row * self.cols + col;
+        &self.prev_data[index]
+    }
+}
+
+impl IndexMut<(usize, usize)> for Board {
+    fn index_mut(&mut self, (col, row): (usize, usize)) -> &mut Self::Output {
+        let index = row * self.cols + col;
+        &mut self.next_data[index]
+    }
+}
 
 
-pub fn init_game(game_params: &mut GameParams, curr_board: &mut Board, next_board: &mut Board) {
-    load_board_from_seed(game_params.seed.to_str().unwrap().to_string(), curr_board);
-    load_board_from_seed(game_params.seed.to_str().unwrap().to_string(), next_board);
+pub fn init_game(game_params: &mut GameParams) -> Board{
+    // Update game params to playing state
     game_params.iteration = 0;
     game_params.speed = 1;
     game_params.paused = true;
-}
 
-/// Returns an randomly composed board
-pub fn new_board(x_size: u16, y_size: u16) -> Board {
-    let mut rng = rand::thread_rng();
-    let mut cols = Vec::with_capacity(x_size as usize);
-    for _ in 0..x_size  {
-        let mut col = Vec::with_capacity(y_size  as usize);
-        for _ in 0..y_size {
-            col.push(rng.gen_range(0..1));
-        }
-        cols.push(col)
-    }
-    cols
-}
-
-/// Returns an empty Board
-pub fn empty_board() -> Board {
-    let mut cols = Vec::with_capacity(get!(NUM_COLS) as usize);
-    for _ in 0..*NUM_COLS.read().unwrap() as usize {
-        let mut col = Vec::with_capacity(get!(NUM_ROWS) as usize);
-        for _ in 0..*NUM_ROWS.read().unwrap() as usize{
-            col.push(0);
-        }
-        cols.push(col)
-    }
-    cols
+    let new_board: Board = load_board_from_seed(game_params.seed.to_str().unwrap().to_string());
+    new_board
 }
 
 
-fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
+
+fn load_board_from_lines(lines: Vec<String>) -> Board {
+    let b = vec![0; 55];
 
     let border_padding_x = 8;
     let border_padding_y = 8;
@@ -76,7 +94,7 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
         }
     }
 
-    let mut new_board = new_board(max_width as u16, max_height );
+    let mut new_board: Board= Board::new(max_width, max_height);
 
     // 3rd: Populate the board
     current_x_offset = 0;
@@ -96,33 +114,30 @@ fn load_board_from_lines(lines: Vec<String>,  dst_board: &mut Board) {
                     let y_pos = current_y_offset;
 
                     // Out of board bounds condition
-                    if y_pos > new_board[x].len() as u16{
+                    if y_pos > new_board.rows {
                         continue;
                     }
-                    new_board[1 + x_pos as usize][ 1 + y_pos as usize] = 1;
+                    new_board[(1 + x_pos as usize, 1 + y_pos as usize)] = 1;
                 }
             }
             current_y_offset += 1; // Move down after each line
         }
     }
-    set!(NUM_COLS, max_width as u32);
-    set!(NUM_ROWS, max_height as u32);
-
-    dst_board.clone_from(&new_board);
+    new_board
 }
 
 
-pub fn load_board_from_seed(seed: String, dst_board: &mut Board)  {
+pub fn load_board_from_seed(seed: String) -> Board{
     let lines: Vec<String> = read_file_lines(&*PathBuf::from(seed)).unwrap();
-    load_board_from_lines(lines, dst_board)
+    load_board_from_lines(lines)
 }
 
-pub fn load_board_from_path(path: &str, dst_board: &mut Board){
+pub fn load_board_from_path(path: &str) -> Board{
     let file = File::open(path).unwrap_or_else(|e| {
         panic!("Failed to open file {}: {}", path, e);
     });
 
     let reader = BufReader::new(file);
     let lines: Vec<String> = reader.lines().map(|l| l.expect("Failed to read line")).collect();
-    load_board_from_lines(lines, dst_board)
+    load_board_from_lines(lines)
 }

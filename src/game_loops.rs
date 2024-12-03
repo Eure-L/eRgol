@@ -1,21 +1,19 @@
 use crate::board::{init_game, Board};
+use crate::game_files::get_seed_file_from_index;
+use crate::game_structs::Game;
 use crate::kernels::get_kernel_func;
 use crate::{GameModes, GameParams};
 use crossterm::event::{Event, KeyCode, MouseEventKind};
 use std::sync::mpsc::Sender;
 use std::time::Duration;
-use strum::IntoEnumIterator;
-use crate::game_files::get_seed_file_from_index;
-use crate::game_structs::Game;
 
-fn step(update_fun: fn(&mut Board, &mut Board), curr_board: &mut Board, next_board: &mut Board) {
-    update_fun(curr_board, next_board);
-    std::mem::swap(curr_board, next_board);
+fn step(update_fun: fn(&mut Board), board: &mut Board) {
+    update_fun(board);
+    board.swap_data()
 }
 
 pub fn game_menu(game_params: &mut GameParams,
-                 curr_board: &mut Board,
-                 next_board: &mut Board,
+                 board: &mut Board,
                  render_tx: Sender<Game>) -> Result<(), String>
 {
     let update_fun = get_kernel_func(game_params.clone().kernel);
@@ -46,11 +44,11 @@ pub fn game_menu(game_params: &mut GameParams,
                             game_params.mode = GameModes::Playing;
                         }
                         KeyCode::Char('s') => {
-                            step(update_fun, curr_board, next_board);
+                            step(update_fun, board);
                         }
                         KeyCode::Char('r') => {
                             game_params.mode = GameModes::Playing;
-                            init_game(game_params, curr_board, next_board);
+                            *board = init_game(game_params);
                         }
                         KeyCode::Down => {
                             game_params.menu_scroll += 1;
@@ -62,8 +60,8 @@ pub fn game_menu(game_params: &mut GameParams,
                         }
                         KeyCode::Enter => {
                             game_params.seed = get_seed_file_from_index(game_params.menu_scroll).parse().unwrap();
-                            init_game(game_params, curr_board, next_board);
                             game_params.mode = GameModes::Playing;
+                            *board = init_game(game_params);
                         }
                         _ => {}
                     }
@@ -75,20 +73,19 @@ pub fn game_menu(game_params: &mut GameParams,
 
     if !game_params.paused {
         for _step_id in 0..game_params.speed {
-            step(update_fun, curr_board, next_board);
+            step(update_fun, board);
         }
     }
 
     // Asks to the rendering thread to draw the frame :)
-    let _ = render_tx.send(Game { game_params: game_params.clone(), board: curr_board.clone() });
+    let _ = render_tx.send(Game { game_params: game_params.clone(), board: board.clone() });
     std::thread::sleep(Duration::from_millis(5));
 
     Ok(())
 }
 
 pub fn play(game_params: &mut GameParams,
-            curr_board: &mut Board,
-            next_board: &mut Board,
+            board: &mut Board,
             render_tx: Sender<Game>) -> Result<(), String>
 {
     let update_fun = get_kernel_func(game_params.clone().kernel);
@@ -102,7 +99,7 @@ pub fn play(game_params: &mut GameParams,
                 }
                 // unit step
                 KeyCode::Char('s') => {
-                    step(update_fun, curr_board, next_board)
+                    step(update_fun, board)
                 }
                 // Speed up
                 KeyCode::Char('+') => {
@@ -122,7 +119,7 @@ pub fn play(game_params: &mut GameParams,
                 }
                 // Pause/unpause
                 KeyCode::Char('r') => {
-                    init_game(game_params, curr_board, next_board);
+                    *board = init_game(game_params);
                 }
                 // Pause/unpause
                 KeyCode::Char('m') => {
@@ -139,11 +136,11 @@ pub fn play(game_params: &mut GameParams,
 
     if !game_params.paused {
         for _step_id in 0..game_params.speed {
-            step(update_fun, curr_board, next_board);
+            step(update_fun, board);
         }
     }
     // Asks to the rendering thread to draw the frame :)
-    let _ = render_tx.send(Game { game_params: game_params.clone(), board: curr_board.clone() });
+    let _ = render_tx.send(Game { game_params: game_params.clone(), board: board.clone() });
     std::thread::sleep(Duration::from_millis(2));
 
     if !game_params.paused {

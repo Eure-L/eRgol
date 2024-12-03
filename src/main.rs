@@ -8,7 +8,7 @@ mod game_loops;
 mod ui;
 mod game_structs;
 
-use crate::board::{init_game};
+use crate::board::{init_game, Board};
 use crate::game_loops::{game_menu, play};
 use crate::render::rendering_tread;
 use crossterm;
@@ -47,17 +47,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     // Game initialization
-    let mut curr_board = board::empty_board();
-    let mut next_board = board::empty_board();
     let mut game_params = GameParams::default();
-
-    init_game(&mut game_params, &mut curr_board, &mut next_board);
+    let mut board = init_game(&mut game_params);
 
     // Main loop -> Game of life
     'gameloop: loop {
         let status = match game_params.mode {
-            GameModes::Playing => { play(&mut game_params, &mut curr_board, &mut next_board, render_tx.clone()) }
-            GameModes::MainMenu => { game_menu(&mut game_params, &mut curr_board, &mut next_board, render_tx.clone()) }
+            GameModes::Playing => { play(&mut game_params, &mut board, render_tx.clone()) }
+            GameModes::MainMenu => { game_menu(&mut game_params, &mut board, render_tx.clone()) }
         };
 
         match status {

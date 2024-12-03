@@ -11,16 +11,6 @@ pub const BRAILLE_SIZE_Y: u32 = 4;
 pub const MAX_WIDTH: u32 = 100000;  // Set your desired max width
 pub const MAX_HEIGHT: u32 = 100000; // Set your desired max height
 
-pub fn get_rendering_ysize() -> u32 {
-    let max_brail_height = 1 + get!(NUM_ROWS) / BRAILLE_SIZE_Y;
-    max_brail_height
-}
-
-pub fn get_rendering_xsize() -> u32{
-    let max_brail_width = 1 + get!(NUM_COLS) / BRAILLE_SIZE_X;
-    max_brail_width
-}
-
 lazy_static! {
     pub static ref NUM_BRAILLE_BLOCS_Y: RwLock<u32> = RwLock::new(
         cmp::min(terminal_size().map(|(_, Height(h))| h).unwrap_or(42) as u32, MAX_HEIGHT)

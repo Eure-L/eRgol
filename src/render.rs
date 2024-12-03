@@ -1,7 +1,7 @@
 use crate::board::Board;
 use crate::game_files::get_seed_files_list;
 use crate::game_structs::{Game, Rendering};
-use crate::globals::{get_rendering_xsize, get_rendering_ysize, BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y, NUM_COLS, NUM_ROWS};
+use crate::globals::{BRAILLE_ALPHABET_START, BRAILLE_SIZE_X, BRAILLE_SIZE_Y, COLOR_FONT, NUM_BRAILLE_BLOCS_X, NUM_BRAILLE_BLOCS_Y};
 use crate::ui::{Drawable, InterractiveDrawable, InterractiveTextBox, TextBox};
 use crate::{get, GameModes, GameParams};
 use crossterm::cursor::MoveTo;
@@ -14,43 +14,42 @@ use std::sync::mpsc::Receiver;
 
 unsafe fn braille_rendering(stdout: &mut Stdout, board: &Board){
     const BASE: u32 = 2;
-    // Braill blocks iteration
-    for bloc_x in 0..get_rendering_xsize() {
-        for bloc_y in 0..get_rendering_ysize(){
+    let max_brail_width = 1 + board.cols as u32 / BRAILLE_SIZE_X;
+    let max_brail_height = 1 + board.rows as u32/ BRAILLE_SIZE_Y;
 
+    // Braill blocks iteration
+    for bloc_y in 0..max_brail_height{
+        for bloc_x in 0..max_brail_width {
             let mut code = BRAILLE_ALPHABET_START; // Code of corresponding unicode char for this brail code
-            for ix in 0..BRAILLE_SIZE_X {
-                let x = bloc_x * BRAILLE_SIZE_X + ix;
-                if x >= get!(NUM_COLS){
+
+            // First 6 Braille cells ⠿
+            for iy in 0..BRAILLE_SIZE_Y -1 {
+                let y = bloc_y * BRAILLE_SIZE_Y + iy;
+                if y >= board.rows as u32{
                     break;
                 }
-
-                // First 6 Braille cells pattern computing
-                for iy in 0..BRAILLE_SIZE_Y - 1 {
-                    let y = bloc_y * BRAILLE_SIZE_Y + iy;
-                    if y >= get!(NUM_ROWS){
+                for ix in 0..BRAILLE_SIZE_X {
+                    let x = bloc_x * BRAILLE_SIZE_X + ix;
+                    if x >= board.cols as u32 {
                         break;
                     }
-
-                    let weight = match board[x as usize][y as usize] {
+                    let weight = match board[(x as usize, y as usize)] {
                         1 => { BASE.pow(iy + ix * (BRAILLE_SIZE_Y - 1)) }
                         _ => { 0 }
                     };
                     code = code + weight;
                 }
-
-                // Two last Braille cells
-                let y = bloc_y * (BRAILLE_SIZE_Y) + BRAILLE_SIZE_Y - 1;
-                if y >= get!(NUM_ROWS){
-                    break;
-                }
-                let weight = match board[x as usize][y as usize] {
-                    1 => { (ix + 1) * 0x40 }
-                    _ => { 0 }
-                };
-
-                code = code + weight;
             }
+
+            // Two last Braille cells ⣿
+            let y = (bloc_y * (BRAILLE_SIZE_Y) + BRAILLE_SIZE_Y - 1) as usize;
+            if y < board.rows {
+                let x: usize = (bloc_x * BRAILLE_SIZE_X) as usize;
+                let weight_1: u8 = board[(x, y)] * 0x40 ;
+                let weight_2: u8 = board[(x+1, y)] * 0x80;
+                code = code + weight_1 as u32 + weight_2 as u32;
+            }
+
             stdout.queue(MoveTo(bloc_x as u16, bloc_y as u16)).unwrap();
             stdout.queue(Print(char::from_u32_unchecked(code))).unwrap();
         }
@@ -65,7 +64,7 @@ unsafe fn render_game_board(stdout: &mut Stdout, board: &Board, game_params: &Ga
     }
 }
 
-fn render_game_ui(stdout: &mut Stdout, game_params: &GameParams, forced :bool){
+fn render_game_ui(stdout: &mut Stdout, board: &Board, game_params: &GameParams, forced :bool){
 
 
     let pause_str = if game_params.paused {
@@ -95,7 +94,7 @@ fn render_game_ui(stdout: &mut Stdout, game_params: &GameParams, forced :bool){
         background_color: Color::Reset,
     };
 
-    controlls_box.draw_at(stdout, 0, get_rendering_ysize() as u16, forced);
+    controlls_box.draw_at(stdout, 0, board.rows as u16, forced);
 }
 
 
@@ -112,7 +111,7 @@ pub(crate) unsafe fn render_board(stdout: &mut Stdout, board: &Board, game_param
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     render_game_board(stdout, board, game_params);
     stdout.queue(SetForegroundColor(Color::Reset)).unwrap();
-    render_game_ui(stdout, game_params, forced);
+    render_game_ui(stdout, board, game_params, forced);
 }
 
 pub(crate) fn render_menu(stdout: &mut Stdout, game_params: &GameParams, forced: bool) {

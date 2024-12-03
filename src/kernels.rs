@@ -1,5 +1,4 @@
 use crate::board::Board;
-use crate::globals::{NUM_COLS, NUM_ROWS};
 
 /// Updates a given board previous_board to in the next_board
 
@@ -16,39 +15,31 @@ impl Kernels {
     }
 }
 
-pub fn get_kernel_func(kernel: Kernels) -> fn(&mut Board, &mut Board) {
+pub fn get_kernel_func(kernel: Kernels) -> fn(&mut Board) {
     match kernel {
         Kernels::CpuSequential => update_board
     }
 }
 
-pub fn update_board(previous_board: &mut Board, next_board: &mut Board){
+pub fn update_board(board: &mut Board) {
     // Inner board computation as the edges are off
-    for ix in 1..*NUM_COLS.read().unwrap() as usize -1 {
-        for iy in 1..*NUM_ROWS.read().unwrap() as usize -1 {
-            let total_neighbors =
-                    previous_board[ix][iy-1] +
-                    previous_board[ix][iy+1] +
-                    previous_board[ix-1][iy] +
-                    previous_board[ix+1][iy] +
-                    previous_board[ix+1][iy-1] +
-                    previous_board[ix-1][iy+1] +
-                    previous_board[ix-1][iy-1] +
-                    previous_board[ix+1][iy+1];
-
-            if previous_board[ix][iy] == 1 {
-                next_board[ix][iy] = match total_neighbors {
-                    3 => {1}
-                    2 => {1}
-                    _ => {0}
+    for ix in 1..board.cols - 1 {
+        for iy in 1..board.rows - 1 {
+            let mut total_neighbors = 0;
+            for dx in -1..=1 {
+                for dy in -1..=1 {
+                    if dx != 0 || dy != 0 {
+                        let x = (ix as i32 + dx);
+                        let y = (iy as i32 + dy);
+                        total_neighbors += board[(x as usize, y as usize)];
+                    }
                 }
             }
-            else {
-                next_board[ix][iy] = match total_neighbors {
-                    3 => {1}
-                    _ => {0}
-                }
-            }
+            board[(ix, iy)] = match (board[(ix, iy)], total_neighbors) {
+                (1, 2 | 3) => 1,
+                (_, 3) => 1,
+                _ => 0,
+            };
         }
     }
 }
